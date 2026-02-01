@@ -246,7 +246,6 @@ class _ScheduleAppointmentSheetState extends State<ScheduleAppointmentSheet> {
 
     return Theme(
       data: theme.copyWith(
-        useMaterial3: true,
         scaffoldBackgroundColor: bg,
         colorScheme: scheme.copyWith(
           primary: const Color(0xFF2E7D32),

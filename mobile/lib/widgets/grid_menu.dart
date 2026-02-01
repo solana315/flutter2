@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../contact_page.dart';
 
 class GridMenu extends StatelessWidget {
   const GridMenu({super.key});
@@ -60,6 +61,12 @@ class GridMenu extends StatelessWidget {
           icon: Icons.mail_outline,
           title: 'Contactar Clínica',
           subtitle: 'Envie uma mensagem',
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ContactPage()),
+            );
+          },
         ),
       ],
     );
