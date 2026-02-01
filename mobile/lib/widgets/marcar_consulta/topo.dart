@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class TopoMarcarConsulta extends StatelessWidget {
-  const TopoMarcarConsulta({Key? key}) : super(key: key);
+  const TopoMarcarConsulta({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../contact_page.dart';
+import 'package:flutter_application_1/pages/dependents_page.dart';
 
 class GridMenu extends StatelessWidget {
   const GridMenu({super.key});
@@ -37,6 +38,12 @@ class GridMenu extends StatelessWidget {
           icon: Icons.people_outline,
           title: 'Dependentes',
           subtitle: 'Gerir familiares',
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const DependentsPage()),
+            );
+          },
         ),
         _menuCard(
           context: context,

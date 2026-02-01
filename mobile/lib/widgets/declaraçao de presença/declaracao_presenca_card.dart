@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class DeclaracaoPresencaCard extends StatelessWidget {
+  const DeclaracaoPresencaCard({super.key});
+
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
