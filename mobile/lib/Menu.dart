@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'marcar_consulta.dart';
+import 'schedule_appointment_sheet.dart';
 import 'widgets/app_bottom_nav.dart';
 import 'widgets/grid_menu.dart';
 import 'widgets/menu/atalhosCard.dart';
@@ -107,12 +108,7 @@ class _MenuState extends State<Menu> {
                               ),
                             ),
                             onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        const MarcarConsulta()),
-                              );
+                              showScheduleAppointmentSheet(context);
                             },
                             child: const Text(
                               'Marcar Consulta',
@@ -126,12 +122,12 @@ class _MenuState extends State<Menu> {
 
                   const SizedBox(height: 18),
 
-                  // GRID MENU 
+                  // GRID MENU
                   const GridMenu(),
 
                   const SizedBox(height: 18),
 
-                  // ATALHOS RÁPIDOS 
+                  // ATALHOS RÁPIDOS
                   const Text(
                     'Atalhos Rápidos',
                     style: TextStyle(fontWeight: FontWeight.w600),
