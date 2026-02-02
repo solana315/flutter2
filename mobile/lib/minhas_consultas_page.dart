@@ -73,7 +73,7 @@ class _MinhasConsultasPageState extends State<MinhasConsultasPage> with SingleTi
                     const SizedBox(width: 12),
                     const Icon(Icons.calendar_today, size: 14, color: Colors.black54),
                     const SizedBox(width: 6),
-                    Text('$weekday', style: const TextStyle(color: Colors.black54)),
+                    Text(weekday, style: const TextStyle(color: Colors.black54)),
                   ],
                 ),
               ],

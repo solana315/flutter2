@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'login_page.dart';
 import 'menu.dart';
-import 'marcar_consulta.dart';
 import 'planotratamento.dart';
 import 'perfil.dart';
 import 'declaracao.dart';

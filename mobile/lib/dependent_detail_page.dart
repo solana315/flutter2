@@ -5,7 +5,7 @@ import 'package:flutter_application_1/models/dependent.dart';
 class DependentDetailPage extends StatelessWidget {
   final Dependent dependent;
 
-  const DependentDetailPage({Key? key, required this.dependent}) : super(key: key);
+  const DependentDetailPage({super.key, required this.dependent});
 
   @override
   Widget build(BuildContext context) {
