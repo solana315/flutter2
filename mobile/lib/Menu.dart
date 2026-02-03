@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'marcar_consulta.dart';
-import 'schedule_appointment_sheet.dart';
+import 'app/session_scope.dart';
 import 'widgets/app_bottom_nav.dart';
 import 'widgets/grid_menu.dart';
 import 'widgets/menu/atalhosCard.dart';
@@ -18,6 +17,8 @@ class _MenuState extends State<Menu> {
     final bg = const Color(0xFFFAF7F4);
     final cardBg = Colors.white;
     final primaryGold = const Color(0xFFA87B05);
+    final session = SessionScope.of(context);
+    final nome = session.user?.nome;
 
     return Scaffold(
       backgroundColor: bg,
@@ -83,9 +84,9 @@ class _MenuState extends State<Menu> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Olá, João!',
-                          style: TextStyle(
+                        Text(
+                          'Olá, ${nome != null && nome.isNotEmpty ? nome : 'Paciente'}!',
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
                           ),
@@ -108,7 +109,7 @@ class _MenuState extends State<Menu> {
                               ),
                             ),
                             onPressed: () {
-                              showScheduleAppointmentSheet(context);
+                              Navigator.pushNamed(context, '/asminhasconsultas');
                             },
                             child: const Text(
                               'Marcar Consulta',

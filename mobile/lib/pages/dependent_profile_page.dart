@@ -1,18 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import 'api/api_client.dart';
-import 'widgets/app_bottom_nav.dart';
-import 'app/session_scope.dart';
+import '../api/api_client.dart';
+import '../app/session_scope.dart';
 
-class Perfil extends StatefulWidget {
-  const Perfil({super.key});
+class DependentProfilePage extends StatefulWidget {
+  final int dependentId;
+  final String? dependentName;
+  final Map<String, dynamic> initialItem;
+
+  const DependentProfilePage({
+    super.key,
+    required this.dependentId,
+    required this.initialItem,
+    this.dependentName,
+  });
 
   @override
-  State<Perfil> createState() => _PerfilState();
+  State<DependentProfilePage> createState() => _DependentProfilePageState();
 }
 
-class _PerfilState extends State<Perfil> {
+class _DependentProfilePageState extends State<DependentProfilePage> {
   Future<Map<String, dynamic>>? _future;
   bool _handledAuthError = false;
 
@@ -26,22 +34,36 @@ class _PerfilState extends State<Perfil> {
     final session = SessionScope.of(context);
     final patientId = session.patientId;
     if (patientId == null) throw Exception('Sessão inválida.');
-    final json = await session.patientApi.getProfile(patientId);
-    final paciente = (json['paciente'] is Map)
-        ? (json['paciente'] as Map).cast<String, dynamic>()
-        : json;
-    return paciente;
+
+    try {
+      final json = await session.patientApi.getDependent(patientId, widget.dependentId);
+      final data = (json['dependent'] is Map)
+          ? (json['dependent'] as Map).cast<String, dynamic>()
+          : (json['dependente'] is Map)
+              ? (json['dependente'] as Map).cast<String, dynamic>()
+              : json;
+      return data;
+    } catch (e) {
+      final status = (e is ApiException) ? e.status : null;
+      if (status == 404) {
+        // Fallback: still render a page using the list payload.
+        return widget.initialItem;
+      }
+      rethrow;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final bg = const Color(0xFFFAF7F4);
-    const int currentIndex = 3;
-    final session = SessionScope.of(context);
-    final user = session.user;
 
     return Scaffold(
       backgroundColor: bg,
+      appBar: AppBar(
+        title: Text(widget.dependentName ?? 'Dependente'),
+        backgroundColor: bg,
+        elevation: 0,
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -49,23 +71,20 @@ class _PerfilState extends State<Perfil> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Text(
-                'Perfil',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+                'Perfil do dependente',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
+                  boxShadow: const [
                     BoxShadow(
-                      color: const Color.fromRGBO(0, 0, 0, 0.03),
+                      color: Color.fromRGBO(0, 0, 0, 0.03),
                       blurRadius: 8,
-                      offset: const Offset(0, 4),
+                      offset: Offset(0, 4),
                     ),
                   ],
                 ),
@@ -85,13 +104,11 @@ class _PerfilState extends State<Perfil> {
                       if ((status == 401 || status == 403) && !_handledAuthError) {
                         _handledAuthError = true;
                         WidgetsBinding.instance.addPostFrameCallback((_) {
+                          final session = SessionScope.of(context);
                           final navigator = Navigator.of(context);
                           session.logout().then((_) {
                             if (!mounted) return;
-                            navigator.pushNamedAndRemoveUntil(
-                              '/login',
-                              (r) => false,
-                            );
+                            navigator.pushNamedAndRemoveUntil('/login', (r) => false);
                           });
                         });
                         return const Padding(
@@ -101,7 +118,7 @@ class _PerfilState extends State<Perfil> {
                       }
 
                       return _ErrorCard(
-                        message: 'Não foi possível carregar o perfil.',
+                        message: 'Não foi possível carregar o dependente.',
                         details: err?.toString(),
                         onRetry: () {
                           setState(() {
@@ -112,18 +129,19 @@ class _PerfilState extends State<Perfil> {
                       );
                     }
 
-                    final paciente = snapshot.data ?? <String, dynamic>{};
+                    final dep = snapshot.data ?? <String, dynamic>{};
 
-                    final nome = _firstString(paciente, ['nome']) ?? user?.nome;
-                    final email = _firstString(paciente, ['email']) ?? user?.email;
-                    final telefone = _firstString(paciente, ['telefone']);
-                    final sexo = _firstString(paciente, ['sexo']);
-                    final endereco = _firstString(paciente, ['endereco']);
-                    final nif = _firstString(paciente, ['nif']);
-                    final dataNascimento = _formatDate(
-                      _firstString(paciente, ['data_nascimento']),
-                    );
-                    final numeroUtente = _firstString(paciente, ['numero_utente']);
+                    final nome = _firstString(dep, ['nome', 'name']) ?? widget.dependentName;
+                    final email = _firstString(dep, ['email']);
+                    final telefone = _firstString(dep, ['telefone', 'phone']);
+                    final sexo = _firstString(dep, ['sexo', 'gender']);
+                    final endereco = _firstString(dep, ['endereco', 'address']);
+                    final nif = _firstString(dep, ['nif']);
+                    final numeroUtente = _firstString(dep, ['numero_utente', 'numeroUtente']);
+                    final dataNascimento = _formatDate(_firstString(
+                      dep,
+                      ['data_nascimento', 'dataNascimento', 'birth_date', 'dob'],
+                    ));
 
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -149,29 +167,6 @@ class _PerfilState extends State<Perfil> {
                             _InfoRow('Nº utente', _display(numeroUtente)),
                           ],
                         ),
-                        const SizedBox(height: 18),
-                        SizedBox(
-                          height: 48,
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              final navigator = Navigator.of(context);
-                              await session.logout();
-                              if (!mounted) return;
-                              navigator.pushNamedAndRemoveUntil(
-                                '/login',
-                                (r) => false,
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: const Text('Terminar sessão'),
-                          ),
-                        ),
                       ],
                     );
                   },
@@ -181,31 +176,7 @@ class _PerfilState extends State<Perfil> {
           ),
         ),
       ),
-      bottomNavigationBar: const AppBottomNav(selectedIndex: currentIndex),
     );
-  }
-
-  static String? _firstString(Map<String, dynamic> json, List<String> keys) {
-    for (final key in keys) {
-      final v = json[key];
-      if (v == null) continue;
-      final s = v.toString();
-      if (s.isNotEmpty) return s;
-    }
-    return null;
-  }
-
-  static String _display(String? value) {
-    final v = value?.trim();
-    return (v == null || v.isEmpty) ? '—' : v;
-  }
-
-  static String? _formatDate(String? raw) {
-    final v = raw?.trim();
-    if (v == null || v.isEmpty) return null;
-    final parsed = DateTime.tryParse(v);
-    if (parsed == null) return v;
-    return DateFormat('dd/MM/yyyy').format(parsed);
   }
 }
 
@@ -217,9 +188,7 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w800,
-          ),
+      style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
     );
   }
 }
@@ -281,10 +250,7 @@ class _KeyValueRow extends StatelessWidget {
           child: Text(
             value,
             textAlign: TextAlign.right,
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.copyWith(fontWeight: FontWeight.w700),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
           ),
         ),
       ],
@@ -319,21 +285,38 @@ class _ErrorCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             details!,
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(color: Colors.black54),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54),
           ),
         ],
         const SizedBox(height: 12),
         SizedBox(
           height: 44,
-          child: OutlinedButton(
-            onPressed: onRetry,
-            child: const Text('Tentar novamente'),
-          ),
+          child: OutlinedButton(onPressed: onRetry, child: const Text('Tentar novamente')),
         ),
       ],
     );
   }
+}
+
+String? _firstString(Map<String, dynamic> json, List<String> keys) {
+  for (final key in keys) {
+    final v = json[key];
+    if (v == null) continue;
+    final s = v.toString();
+    if (s.isNotEmpty) return s;
+  }
+  return null;
+}
+
+String _display(String? value) {
+  final v = value?.trim();
+  return (v == null || v.isEmpty) ? '—' : v;
+}
+
+String? _formatDate(String? raw) {
+  final v = raw?.trim();
+  if (v == null || v.isEmpty) return null;
+  final parsed = DateTime.tryParse(v);
+  if (parsed == null) return v;
+  return DateFormat('dd/MM/yyyy').format(parsed);
 }

@@ -36,6 +36,9 @@ class GridMenu extends StatelessWidget {
           icon: Icons.people_outline,
           title: 'Dependentes',
           subtitle: 'Gerir familiares',
+          onTap: () {
+            Navigator.pushNamed(context, '/pacientes');
+          },
         ),
         _menuCard(
           context: context,
@@ -43,7 +46,7 @@ class GridMenu extends StatelessWidget {
           title: 'Declarações/Docs',
           subtitle: 'Descarregar comprov.',
           onTap: () {
-            Navigator.pushNamed(context, '/declaracao');
+            Navigator.pushNamed(context, '/declarations_docs');
           },
         ),
         _menuCard(

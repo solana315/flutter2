@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../menu.dart';
+import '../../app/session_scope.dart';
 import 'login_fields.dart';
 import 'buttons.dart';
 
@@ -49,29 +48,20 @@ class _LoginFormState extends State<LoginForm> {
       return;
     }
 
-    //validação do email - LOGIN LOCAL SEM BACKEND
     setState(() => _isLoading = true);
-    debugPrint('Login local: email=$email');
+
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
 
     try {
-      // Simular delay de rede
-      await Future.delayed(const Duration(milliseconds: 500));
-      
-      // Guardar dados localmente (login local sem backend)
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('auth_token', 'local_token_${DateTime.now().millisecondsSinceEpoch}');
-      await prefs.setInt('user_id', 1);
-      await prefs.setString('user_email', email);
-      
-      debugPrint('Login local bem-sucedido');
-      
-      //depois de guardar os dados muda a rota atual para menu
-      if (!context.mounted) return;
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const Menu()));
+      final session = SessionScope.of(context);
+      await session.loginPaciente(email: email, senha: senha);
+      if (!mounted) return;
+      navigator.pushReplacementNamed('/menu');
     } catch (err) {
-      if (!context.mounted) return;
+      if (!mounted) return;
       final msg = err.toString();
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro: $msg')));
+      messenger.showSnackBar(SnackBar(content: Text('Erro: $msg')));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
