@@ -55,7 +55,9 @@ class _MarcarConsultaState extends State<MarcarConsulta> {
               final passadas = <Map<String, dynamic>>[];
 
               for (final c in consultas) {
-                final status = (c['status'] ?? c['estado'] ?? '').toString().trim();
+                final status = (c['status'] ?? c['estado'] ?? '')
+                    .toString()
+                    .trim();
                 final dt = _consultaDateTime(c);
                 final isCancelled = _isCancelledStatus(status);
                 final isPast = isCancelled || (dt != null && dt.isBefore(now));
@@ -97,7 +99,10 @@ class _MarcarConsultaState extends State<MarcarConsulta> {
                       children: [
                         const Text(
                           'Consultas',
-                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                         const SizedBox(height: 6),
                         const Text(
@@ -136,7 +141,8 @@ class _MarcarConsultaState extends State<MarcarConsulta> {
                         _ConsultasListTab(
                           hintText: 'Pesquisar consultas futuras…',
                           query: _futureQuery,
-                          onQueryChanged: (v) => setState(() => _futureQuery = v),
+                          onQueryChanged: (v) =>
+                              setState(() => _futureQuery = v),
                           consultas: _filterConsultas(futuras, _futureQuery),
                           onRefresh: refresh,
                           onOpen: _openConsulta,
@@ -179,10 +185,8 @@ class _MarcarConsultaState extends State<MarcarConsulta> {
 
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => ConsultaDetailsPage(
-          consultaId: id,
-          initialConsulta: consulta,
-        ),
+        builder: (_) =>
+            ConsultaDetailsPage(consultaId: id, initialConsulta: consulta),
       ),
     );
   }
@@ -192,7 +196,7 @@ class _MarcarConsultaState extends State<MarcarConsulta> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withOpacity(0.35),
+      barrierColor: Colors.black.withValues(alpha: 0.35),
       builder: (ctx) {
         final height = MediaQuery.of(ctx).size.height;
         return DraggableScrollableSheet(
@@ -245,14 +249,13 @@ class _MarcarConsultaState extends State<MarcarConsulta> {
   }
 
   static List<Map<String, dynamic>> _extractList(Map<String, dynamic> json) {
-    final candidates = [
-      json['consultas'],
-      json['data'],
-      json['items'],
-    ];
+    final candidates = [json['consultas'], json['data'], json['items']];
     for (final c in candidates) {
       if (c is List) {
-        return c.whereType<Map>().map((e) => e.cast<String, dynamic>()).toList();
+        return c
+            .whereType<Map>()
+            .map((e) => e.cast<String, dynamic>())
+            .toList();
       }
     }
     return const [];
@@ -344,10 +347,9 @@ class _ConsultasListTab extends StatelessWidget {
               ),
             )
           else
-            ...consultas.map((c) => _ConsultaCard(
-                  consulta: c,
-                  onTap: () => onOpen(c),
-                )),
+            ...consultas.map(
+              (c) => _ConsultaCard(consulta: c, onTap: () => onOpen(c)),
+            ),
         ],
       ),
     );
@@ -397,17 +399,23 @@ class _ConsultaCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final id = _asInt(consulta['id'] ?? consulta['id_consulta']);
-    final status = (consulta['status'] ?? consulta['estado'] ?? '').toString().trim();
+    final status = (consulta['status'] ?? consulta['estado'] ?? '')
+        .toString()
+        .trim();
     final dateTimeLine = _formatDateTimeLine(consulta);
 
-    final medico = (consulta['medico_nome'] ?? consulta['doctor_name'] ?? consulta['id_medico'])
-        ?.toString()
-        .trim();
+    final medico =
+        (consulta['medico_nome'] ??
+                consulta['doctor_name'] ??
+                consulta['id_medico'])
+            ?.toString()
+            .trim();
     final profissional = (medico == null || medico.isEmpty) ? '—' : medico;
 
-    final dependente = (consulta['dependente_nome'] ?? consulta['dependent_name'])
-        ?.toString()
-        .trim();
+    final dependente =
+        (consulta['dependente_nome'] ?? consulta['dependent_name'])
+            ?.toString()
+            .trim();
 
     final chip = _statusChip(status);
 
@@ -455,7 +463,10 @@ class _ConsultaCard extends StatelessWidget {
                       const SizedBox(height: 8),
                       Text(
                         dateTimeLine,
-                        style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w600),
+                        style: const TextStyle(
+                          color: Colors.black87,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       const SizedBox(height: 6),
                       Text(
@@ -499,17 +510,21 @@ class _StatusChipWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = color.withOpacity(0.12);
+    final bg = color.withValues(alpha: 0.12);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withOpacity(0.28)),
+        border: Border.all(color: color.withValues(alpha: 0.28)),
       ),
       child: Text(
         text.isEmpty ? '—' : text,
-        style: TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 12),
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.w800,
+          fontSize: 12,
+        ),
       ),
     );
   }
@@ -526,29 +541,36 @@ _StatusChip _statusChip(String statusRaw) {
   if (lower.contains('pend')) {
     return const _StatusChip('Pendente', Color(0xFFF59E0B));
   }
-  if (lower.contains('cancel') || lower.contains('rejeit') || lower.contains('recus')) {
+  if (lower.contains('cancel') ||
+      lower.contains('rejeit') ||
+      lower.contains('recus')) {
     return const _StatusChip('Cancelado', Color(0xFFEF4444));
   }
   return _StatusChip(s, Colors.grey);
 }
 
 String _formatDateTimeLine(Map<String, dynamic> consulta) {
-  final rawDate = (consulta['data_consulta'] ??
-          consulta['data'] ??
-          consulta['dataHora'] ??
-          consulta['datetime'] ??
-          consulta['date'])
-      ?.toString()
-      .trim();
+  final rawDate =
+      (consulta['data_consulta'] ??
+              consulta['data'] ??
+              consulta['dataHora'] ??
+              consulta['datetime'] ??
+              consulta['date'])
+          ?.toString()
+          .trim();
 
   final rawHour = (consulta['hora'] ?? consulta['time'])?.toString().trim();
 
   DateTime? dt;
   if (rawDate != null && rawDate.isNotEmpty) {
-    dt = DateTime.tryParse(rawDate) ?? DateTime.tryParse(rawDate.replaceFirst(' ', 'T'));
+    dt =
+        DateTime.tryParse(rawDate) ??
+        DateTime.tryParse(rawDate.replaceFirst(' ', 'T'));
   }
 
-  final dateStr = (dt != null) ? DateFormat('dd/MM/yyyy').format(dt) : (rawDate?.isNotEmpty == true ? rawDate! : '—');
+  final dateStr = (dt != null)
+      ? DateFormat('dd/MM/yyyy').format(dt)
+      : (rawDate?.isNotEmpty == true ? rawDate! : '—');
 
   String hourStr;
   if (rawHour != null && rawHour.isNotEmpty) {
@@ -569,23 +591,29 @@ String _formatDateTimeLine(Map<String, dynamic> consulta) {
 bool _isCancelledStatus(String statusRaw) {
   final s = statusRaw.trim().toLowerCase();
   if (s.isEmpty) return false;
-  return s.contains('cancel') || s.contains('rejeit') || s.contains('recus') || s.contains('anulad');
+  return s.contains('cancel') ||
+      s.contains('rejeit') ||
+      s.contains('recus') ||
+      s.contains('anulad');
 }
 
 DateTime? _consultaDateTime(Map<String, dynamic> consulta) {
-  final rawDate = (consulta['data_consulta'] ??
-          consulta['data'] ??
-          consulta['dataHora'] ??
-          consulta['datetime'] ??
-          consulta['date'])
-      ?.toString()
-      .trim();
+  final rawDate =
+      (consulta['data_consulta'] ??
+              consulta['data'] ??
+              consulta['dataHora'] ??
+              consulta['datetime'] ??
+              consulta['date'])
+          ?.toString()
+          .trim();
 
   final rawHour = (consulta['hora'] ?? consulta['time'])?.toString().trim();
 
   DateTime? dt;
   if (rawDate != null && rawDate.isNotEmpty) {
-    dt = DateTime.tryParse(rawDate) ?? DateTime.tryParse(rawDate.replaceFirst(' ', 'T'));
+    dt =
+        DateTime.tryParse(rawDate) ??
+        DateTime.tryParse(rawDate.replaceFirst(' ', 'T'));
   }
 
   if (dt == null) return null;
@@ -621,7 +649,10 @@ class _ErrorView extends StatelessWidget {
           children: [
             Text('Erro ao carregar: ${error ?? 'desconhecido'}'),
             const SizedBox(height: 12),
-            ElevatedButton(onPressed: onRetry, child: const Text('Tentar novamente')),
+            ElevatedButton(
+              onPressed: onRetry,
+              child: const Text('Tentar novamente'),
+            ),
           ],
         ),
       ),

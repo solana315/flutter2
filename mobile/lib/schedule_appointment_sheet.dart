@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
 
+import 'models/patient.dart';
+import 'pages/add_patient_page.dart';
+import 'services/patient_store.dart';
+
 // -----------------------------------------------------------------------------
 // Mock data + models
 // -----------------------------------------------------------------------------
 
-enum SlotStatus { available, limited, soldOut }
-
-class Patient {
-  final String id;
-  final String name;
-  final String type; // Titular / Dependente
-  const Patient({required this.id, required this.name, required this.type});
-}
+enum SlotStatus { available, unavailable }
 
 class Doctor {
   final String id;
@@ -23,12 +20,6 @@ class Specialty {
   final String id;
   final String name;
   const Specialty({required this.id, required this.name});
-}
-
-class Insurance {
-  final String id;
-  final String name;
-  const Insurance({required this.id, required this.name});
 }
 
 class DayOption {
@@ -48,11 +39,7 @@ class TimeSlot {
   const TimeSlot({required this.timeLabel, required this.status});
 }
 
-const _patients = <Patient>[
-  Patient(id: 'p1', name: 'João', type: 'Titular'),
-  Patient(id: 'p2', name: 'Maria', type: 'Dependente'),
-  Patient(id: 'p3', name: 'Pedro', type: 'Dependente'),
-];
+List<Patient> get _patients => PatientStore.patients;
 
 const _doctors = <Doctor>[
   Doctor(id: 'd1', name: 'Dra. Sofia Lima'),
@@ -64,13 +51,6 @@ const _specialties = <Specialty>[
   Specialty(id: 's1', name: 'Higiene Oral'),
   Specialty(id: 's2', name: 'Ortodontia'),
   Specialty(id: 's3', name: 'Endodontia'),
-];
-
-const _insurances = <Insurance>[
-  Insurance(id: 'i1', name: 'ADSE'),
-  Insurance(id: 'i2', name: 'Multicare'),
-  Insurance(id: 'i3', name: 'Particular'),
-  Insurance(id: 'i4', name: 'Médis'),
 ];
 
 final _days = <DayOption>[
@@ -85,10 +65,10 @@ final _days = <DayOption>[
 
 const _slots = <TimeSlot>[
   TimeSlot(timeLabel: '09:00', status: SlotStatus.available),
-  TimeSlot(timeLabel: '09:30', status: SlotStatus.limited),
-  TimeSlot(timeLabel: '10:00', status: SlotStatus.soldOut),
+  TimeSlot(timeLabel: '09:30', status: SlotStatus.available),
+  TimeSlot(timeLabel: '10:00', status: SlotStatus.unavailable),
   TimeSlot(timeLabel: '10:30', status: SlotStatus.available),
-  TimeSlot(timeLabel: '11:00', status: SlotStatus.limited),
+  TimeSlot(timeLabel: '11:00', status: SlotStatus.available),
   TimeSlot(timeLabel: '11:30', status: SlotStatus.available),
 ];
 
@@ -128,14 +108,53 @@ class ScheduleAppointmentSheet extends StatefulWidget {
 }
 
 class _ScheduleAppointmentSheetState extends State<ScheduleAppointmentSheet> {
-  Patient? _selectedPatient = _patients.first;
+  Patient? _selectedPatient;
   Doctor? _selectedDoctor = _doctors.first;
   Specialty? _selectedSpecialty = _specialties.first;
   DayOption? _selectedDay = _days[2]; // Qua 14 (selecionado por defeito)
   TimeSlot? _selectedSlot = _slots[3]; // 10:30 (selecionado por defeito)
-  Insurance? _selectedInsurance;
 
   int _bottomIndex = 1; // Consultas (mock)
+
+  static const Duration _minAdvanceTime = Duration(hours: 48);
+
+  @override
+  void initState() {
+    super.initState();
+    final patients = _patients;
+    _selectedPatient = patients.isNotEmpty ? patients.first : null;
+  }
+
+  Future<void> _addPatient() async {
+    final created = await Navigator.push<Patient>(
+      context,
+      MaterialPageRoute(builder: (_) => const AddPatientPage()),
+    );
+    if (!mounted || created == null) return;
+    setState(() => _selectedPatient = created);
+  }
+
+  DateTime? get _selectedAppointmentDateTime {
+    final day = _selectedDay?.date;
+    final timeLabel = _selectedSlot?.timeLabel;
+    if (day == null || timeLabel == null) return null;
+
+    final parts = timeLabel.split(':');
+    if (parts.length != 2) return null;
+
+    final hour = int.tryParse(parts[0]);
+    final minute = int.tryParse(parts[1]);
+    if (hour == null || minute == null) return null;
+
+    return DateTime(day.year, day.month, day.day, hour, minute);
+  }
+
+  bool get _meetsMinAdvanceTime {
+    final appointment = _selectedAppointmentDateTime;
+    if (appointment == null) return false;
+    final threshold = DateTime.now().add(_minAdvanceTime);
+    return !appointment.isBefore(threshold);
+  }
 
   bool get _canConfirm {
     return _selectedPatient != null &&
@@ -143,7 +162,7 @@ class _ScheduleAppointmentSheetState extends State<ScheduleAppointmentSheet> {
         _selectedSpecialty != null &&
         _selectedDay != null &&
         _selectedSlot != null &&
-        _selectedInsurance != null;
+        _meetsMinAdvanceTime;
   }
 
   Future<void> _pickDoctor() async {
@@ -222,10 +241,9 @@ class _ScheduleAppointmentSheetState extends State<ScheduleAppointmentSheet> {
     final specialty = _selectedSpecialty!;
     final doctor = _selectedDoctor!;
     final patient = _selectedPatient!;
-    final insurance = _selectedInsurance!;
 
     final summary =
-        '${day.dayNumber} Nov • ${slot.timeLabel} • ${specialty.name} • ${doctor.name} • ${patient.name} (${patient.type}) • ${insurance.name}';
+        '${day.dayNumber} Nov • ${slot.timeLabel} • ${specialty.name} • ${doctor.name} • ${patient.name} (${patient.type})';
 
     ScaffoldMessenger.of(
       context,
@@ -246,7 +264,6 @@ class _ScheduleAppointmentSheetState extends State<ScheduleAppointmentSheet> {
 
     return Theme(
       data: theme.copyWith(
-        useMaterial3: true,
         scaffoldBackgroundColor: bg,
         colorScheme: scheme.copyWith(
           primary: const Color(0xFF2E7D32),
@@ -283,10 +300,20 @@ class _ScheduleAppointmentSheetState extends State<ScheduleAppointmentSheet> {
                           height: 44,
                           child: ListView.separated(
                             scrollDirection: Axis.horizontal,
-                            itemCount: _patients.length,
+                            itemCount: _patients.length + 1,
                             separatorBuilder: (_, __) =>
                                 const SizedBox(width: 10),
                             itemBuilder: (ctx, i) {
+                              if (i == _patients.length) {
+                                return SelectChip(
+                                  label: '+',
+                                  selected: false,
+                                  selectedBackground: chipSelectedBg,
+                                  selectedBorderColor: chipSelectedBorder,
+                                  unselectedBackground: chipNeutralBg,
+                                  onTap: _addPatient,
+                                );
+                              }
                               final p = _patients[i];
                               final selected = _selectedPatient?.id == p.id;
                               return SelectChip(
@@ -370,13 +397,8 @@ class _ScheduleAppointmentSheetState extends State<ScheduleAppointmentSheet> {
                                 ),
                                 SizedBox(width: 10),
                                 LegendPill(
-                                  label: 'Limitado',
-                                  kind: SlotStatus.limited,
-                                ),
-                                SizedBox(width: 10),
-                                LegendPill(
-                                  label: 'Esgotado',
-                                  kind: SlotStatus.soldOut,
+                                  label: 'Indisponível',
+                                  kind: SlotStatus.unavailable,
                                 ),
                               ],
                             ),
@@ -401,7 +423,7 @@ class _ScheduleAppointmentSheetState extends State<ScheduleAppointmentSheet> {
                                   label: slot.timeLabel,
                                   status: slot.status,
                                   selected: selected,
-                                  onTap: slot.status == SlotStatus.soldOut
+                                  onTap: slot.status == SlotStatus.unavailable
                                       ? null
                                       : () => setState(
                                           () => _selectedSlot = slot,
@@ -414,40 +436,8 @@ class _ScheduleAppointmentSheetState extends State<ScheduleAppointmentSheet> {
                       ),
                       const SizedBox(height: 14),
 
-                      // 4. Entidade/Seguro
-                      const _SectionLabel('4. Entidade/Seguro'),
-                      const SizedBox(height: 8),
-                      SectionCard(
-                        child: GridView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: _insurances.length,
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                mainAxisSpacing: 10,
-                                crossAxisSpacing: 10,
-                                childAspectRatio: 3.1,
-                              ),
-                          itemBuilder: (ctx, i) {
-                            final insurance = _insurances[i];
-                            final selected =
-                                _selectedInsurance?.id == insurance.id;
-                            return OptionCard(
-                              icon: Icons.verified_user_outlined,
-                              label: insurance.name,
-                              selected: selected,
-                              onTap: () => setState(
-                                () => _selectedInsurance = insurance,
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-
-                      // 5. Confirmar
-                      const _SectionLabel('5. Confirmar'),
+                      // 4. Confirmar
+                      const _SectionLabel('4. Confirmar'),
                       const SizedBox(height: 8),
                       SectionCard(
                         child: Column(
@@ -458,6 +448,14 @@ class _ScheduleAppointmentSheetState extends State<ScheduleAppointmentSheet> {
                                   '${_selectedDay?.dayNumber ?? '--'} Nov • ${_selectedSlot?.timeLabel ?? '--:--'} • ${_selectedSpecialty?.name ?? '--'} • ${(_selectedDoctor?.name ?? '--').replaceAll('Lima', '').trim()}'
                                       .trim(),
                             ),
+                            if (!_meetsMinAdvanceTime) ...[
+                              const SizedBox(height: 10),
+                              Text(
+                                'Só é possível marcar com pelo menos 48 horas de antecedência.',
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(color: Colors.red.shade700),
+                              ),
+                            ],
                             const SizedBox(height: 12),
                             SizedBox(
                               height: 48,
@@ -818,9 +816,7 @@ class LegendPill extends StatelessWidget {
     switch (kind) {
       case SlotStatus.available:
         return const Color(0xFFE4F3EA);
-      case SlotStatus.limited:
-        return const Color(0xFFF4E7C5);
-      case SlotStatus.soldOut:
+      case SlotStatus.unavailable:
         return const Color(0xFFE6E6E6);
     }
   }
@@ -829,9 +825,7 @@ class LegendPill extends StatelessWidget {
     switch (kind) {
       case SlotStatus.available:
         return Theme.of(context).colorScheme.primary;
-      case SlotStatus.limited:
-        return const Color(0xFF7A5B00);
-      case SlotStatus.soldOut:
+      case SlotStatus.unavailable:
         return Colors.black54;
     }
   }
@@ -873,9 +867,7 @@ class TimeSlotButton extends StatelessWidget {
     switch (status) {
       case SlotStatus.available:
         return const Color(0xFFE4F3EA);
-      case SlotStatus.limited:
-        return const Color(0xFFF4E7C5);
-      case SlotStatus.soldOut:
+      case SlotStatus.unavailable:
         return const Color(0xFFE6E6E6);
     }
   }
@@ -883,7 +875,7 @@ class TimeSlotButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final disabled = status == SlotStatus.soldOut || onTap == null;
+    final disabled = status == SlotStatus.unavailable || onTap == null;
 
     return Semantics(
       button: true,

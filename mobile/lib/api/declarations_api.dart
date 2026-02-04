@@ -31,6 +31,14 @@ class DeclarationsApi {
     return client.getBytes('/declarations/${declaration.id}/download');
   }
 
+  Future<ApiBinaryResponse> downloadPresenceByConsulta({
+    required int consultaId,
+  }) {
+    return client.getBytes(
+      '/declarations/presence/by-consulta/$consultaId/download',
+    );
+  }
+
   static List<dynamic> _extractList(Map<String, dynamic> res) {
     final dynamic root =
         res['data'] ?? res['declarations'] ?? res['items'] ?? res;

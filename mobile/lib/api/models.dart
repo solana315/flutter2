@@ -80,6 +80,8 @@ class ApiFileItem {
   final String? category;
   final DateTime? createdAt;
   final int? sizeBytes;
+  final int? consultaId;
+  final int? dependentId;
 
   const ApiFileItem({
     required this.id,
@@ -88,6 +90,8 @@ class ApiFileItem {
     this.category,
     this.createdAt,
     this.sizeBytes,
+    this.consultaId,
+    this.dependentId,
   });
 
   factory ApiFileItem.fromJson(Map<String, dynamic> json) {
@@ -128,6 +132,21 @@ class ApiFileItem {
           json['uploaded_at'] ??
           json['date']),
       sizeBytes: asInt(json['sizeBytes'] ?? json['size_bytes'] ?? json['size']),
+      consultaId: asInt(
+        json['consultaId'] ??
+            json['consulta_id'] ??
+            json['id_consulta'] ??
+            (json['consulta'] is Map ? (json['consulta'] as Map)['id'] : null),
+      ),
+      dependentId: asInt(
+        json['dependentId'] ??
+            json['dependent_id'] ??
+            json['dependenteId'] ??
+            json['dependente_id'] ??
+            json['id_dependente'] ??
+            (json['dependent'] is Map ? (json['dependent'] as Map)['id'] : null) ??
+            (json['dependente'] is Map ? (json['dependente'] as Map)['id'] : null),
+      ),
     );
   }
 }

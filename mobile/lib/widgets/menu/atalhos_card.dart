@@ -25,7 +25,11 @@ class AtalhosCard extends StatelessWidget {
     );
   }
 
-  Widget _quickCard({required String title, required String subtitle, VoidCallback? onTap}) {
+  Widget _quickCard({
+    required String title,
+    required String subtitle,
+    VoidCallback? onTap,
+  }) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(10),
@@ -49,9 +53,15 @@ class AtalhosCard extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+                Text(
+                  title,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
                 const SizedBox(height: 6),
-                Text(subtitle, style: const TextStyle(fontSize: 12, color: Colors.black54)),
+                Text(
+                  subtitle,
+                  style: const TextStyle(fontSize: 12, color: Colors.black54),
+                ),
               ],
             ),
             const Icon(Icons.chevron_right, color: Colors.black26),

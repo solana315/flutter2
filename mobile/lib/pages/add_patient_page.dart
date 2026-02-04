@@ -54,11 +54,14 @@ class _AddPatientPageState extends State<AddPatientPage> {
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: _type,
+                initialValue: _type,
                 decoration: const InputDecoration(labelText: 'Tipo'),
                 items: const [
                   DropdownMenuItem(value: 'Titular', child: Text('Titular')),
-                  DropdownMenuItem(value: 'Dependente', child: Text('Dependente')),
+                  DropdownMenuItem(
+                    value: 'Dependente',
+                    child: Text('Dependente'),
+                  ),
                 ],
                 onChanged: (v) => setState(() => _type = v ?? 'Titular'),
               ),

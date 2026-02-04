@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../pages/declarations_docs_page.dart';
+
 class Dashboard extends StatelessWidget {
-  const Dashboard({Key? key}) : super(key: key);
+  const Dashboard({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +63,12 @@ class Dashboard extends StatelessWidget {
                 title: 'Declarações/Docs',
                 subtitle: 'Descarregar comprovante',
                 onTap: () {
-                  // FALTA: Navegar para declarações
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const DeclarationsDocsPage(),
+                    ),
+                  );
                 },
               ),
 

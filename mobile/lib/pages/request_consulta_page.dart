@@ -68,12 +68,10 @@ class _RequestConsultaPageState extends State<RequestConsultaPage> {
     if (userId == null) return const <_DependentOption>[];
 
     final json = await session.patientApi.listDependents(userId);
-    final items = _extractList(json, keys: const [
-      'dependents',
-      'dependentes',
-      'items',
-      'data',
-    ]);
+    final items = _extractList(
+      json,
+      keys: const ['dependents', 'dependentes', 'items', 'data'],
+    );
 
     final out = <_DependentOption>[];
     for (final raw in items) {
@@ -81,8 +79,9 @@ class _RequestConsultaPageState extends State<RequestConsultaPage> {
       final m = raw.cast<String, dynamic>();
       final id = _asInt(m['id'] ?? m['dependent_id'] ?? m['id_dependente']);
       if (id == null) continue;
-      final name = (m['nome'] ?? m['name'] ?? m['paciente_nome'] ?? 'Dependente')
-          .toString();
+      final name =
+          (m['nome'] ?? m['name'] ?? m['paciente_nome'] ?? 'Dependente')
+              .toString();
       out.add(_DependentOption(id: id, name: name));
     }
 
@@ -95,26 +94,41 @@ class _RequestConsultaPageState extends State<RequestConsultaPage> {
     if (userId == null) return const <_PlanOption>[];
 
     final json = await session.patientApi.listPlanos(userId);
-    final items = _extractList(json, keys: const [
-      'planos',
-      'plans',
-      'tratamentos',
-      'treatments',
-      'items',
-      'data',
-    ]);
+    final items = _extractList(
+      json,
+      keys: const [
+        'planos',
+        'plans',
+        'tratamentos',
+        'treatments',
+        'items',
+        'data',
+      ],
+    );
 
     final out = <_PlanOption>[];
     for (final raw in items) {
       if (raw is! Map) continue;
       final m = raw.cast<String, dynamic>();
-      final id = _asInt(m['id'] ?? m['plano_id'] ?? m['id_plano'] ?? m['id_tratamento']);
+      final id = _asInt(
+        m['id'] ?? m['plano_id'] ?? m['id_plano'] ?? m['id_tratamento'],
+      );
       if (id == null) continue;
 
-      final name = (m['titulo'] ?? m['nome'] ?? m['name'] ?? m['descricao'] ?? m['designacao'])
-          ?.toString()
-          .trim();
-      out.add(_PlanOption(id: id, name: (name == null || name.isEmpty) ? 'Tratamento #$id' : name));
+      final name =
+          (m['titulo'] ??
+                  m['nome'] ??
+                  m['name'] ??
+                  m['descricao'] ??
+                  m['designacao'])
+              ?.toString()
+              .trim();
+      out.add(
+        _PlanOption(
+          id: id,
+          name: (name == null || name.isEmpty) ? 'Tratamento #$id' : name,
+        ),
+      );
     }
 
     return out;
@@ -243,7 +257,9 @@ class _RequestConsultaPageState extends State<RequestConsultaPage> {
     }
 
     if (!_meetsMinAdvanceTime) {
-      setState(() => _error = 'Tem de pedir com pelo menos 48h de antecedência.');
+      setState(
+        () => _error = 'Tem de pedir com pelo menos 48h de antecedência.',
+      );
       return;
     }
 
@@ -328,329 +344,347 @@ class _RequestConsultaPageState extends State<RequestConsultaPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                  const Text(
-                    'Dados da Consulta',
-                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Preenche a informação conforme o processo clínico.',
-                    style: TextStyle(color: Colors.black54),
-                  ),
-                  const SizedBox(height: 16),
+                const Text(
+                  'Dados da Consulta',
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Preenche a informação conforme o processo clínico.',
+                  style: TextStyle(color: Colors.black54),
+                ),
+                const SizedBox(height: 16),
 
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final isWide = constraints.maxWidth >= 720;
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isWide = constraints.maxWidth >= 720;
 
-                      Widget pair(Widget left, Widget right) {
-                        if (isWide) {
-                          return Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(child: left),
-                              const SizedBox(width: 14),
-                              Expanded(child: right),
-                            ],
-                          );
-                        }
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                    Widget pair(Widget left, Widget right) {
+                      if (isWide) {
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            left,
-                            const SizedBox(height: 12),
-                            right,
+                            Expanded(child: left),
+                            const SizedBox(width: 14),
+                            Expanded(child: right),
                           ],
                         );
                       }
-
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          pair(
-                            _Labeled(
-                              label: 'Paciente',
-                              child: FutureBuilder<List<_DependentOption>>(
-                                future: _dependentsFuture,
-                                builder: (context, snapshot) {
-                                  final dependents = snapshot.data ?? const <_DependentOption>[];
-                                  final items = <DropdownMenuItem<int?>>[
-                                    DropdownMenuItem<int?>(
-                                      value: null,
-                                      child: Text(pacienteLabel),
-                                    ),
-                                    ...dependents.map(
-                                      (d) => DropdownMenuItem<int?>(
-                                        value: d.id,
-                                        child: Text(d.name),
-                                      ),
-                                    ),
-                                  ];
+                        children: [left, const SizedBox(height: 12), right],
+                      );
+                    }
 
-                                  return DropdownButtonFormField<int?>(
-                                    value: _selectedDependentId,
-                                    items: items,
-                                    onChanged: _submitting
-                                        ? null
-                                        : (v) => setState(() {
-                                              _selectedDependentId = v;
-                                              _error = null;
-                                            }),
-                                    decoration: _fieldDecoration(hint: 'Selecione'),
-                                  );
-                                },
-                              ),
-                            ),
-                            _Labeled(
-                              label: 'Tratamentos (opcional)',
-                              child: FutureBuilder<List<_PlanOption>>(
-                                future: _plansFuture,
-                                builder: (context, snapshot) {
-                                  final plans = snapshot.data ?? const <_PlanOption>[];
-                                  final items = <DropdownMenuItem<int?>>[
-                                    const DropdownMenuItem<int?>(
-                                      value: null,
-                                      child: Text('-- Sem tratamento --'),
-                                    ),
-                                    ...plans.map(
-                                      (p) => DropdownMenuItem<int?>(
-                                        value: p.id,
-                                        child: Text(p.name),
-                                      ),
-                                    ),
-                                  ];
-
-                                  return Column(
-                                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                                    children: [
-                                      DropdownButtonFormField<int?>(
-                                        value: _selectedTreatmentPlanId,
-                                        items: items,
-                                        onChanged: _submitting
-                                            ? null
-                                            : (v) => setState(() {
-                                                  _selectedTreatmentPlanId = v;
-                                                  _error = null;
-                                                }),
-                                        decoration: _fieldDecoration(hint: '-- Sem tratamento --'),
-                                      ),
-                                      if (plans.isEmpty) ...[
-                                        const SizedBox(height: 6),
-                                        const Text(
-                                          'Sem tratamentos para esta seleção.',
-                                          style: TextStyle(color: Colors.black54),
-                                        ),
-                                      ],
-                                    ],
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
-
-                          const SizedBox(height: 12),
-
-                          pair(
-                            _Labeled(
-                              label: 'Profissional',
-                              child: _SelectField(
-                                enabled: !_submitting,
-                                value: _selectedDoctorId == null
-                                    ? 'Selecione'
-                                    : 'ID ${_selectedDoctorId!}',
-                                onTap: _pickDoctorId,
-                                decoration: _fieldDecoration(hint: 'Selecione'),
-                              ),
-                            ),
-                            _Labeled(
-                              label: 'Especialidade',
-                              child: _SelectField(
-                                enabled: false,
-                                value: 'Clínica Geral',
-                                onTap: null,
-                                decoration: _fieldDecoration(hint: ''),
-                              ),
-                            ),
-                          ),
-
-                          const SizedBox(height: 12),
-
-                          pair(
-                            _Labeled(
-                              label: 'Data',
-                              child: _SelectField(
-                                enabled: !_submitting,
-                                value: dateLabel,
-                                onTap: _pickDate,
-                                decoration: _fieldDecoration(
-                                  hint: 'Selecione',
-                                  icon: Icons.calendar_today_outlined,
-                                ),
-                              ),
-                            ),
-                            _Labeled(
-                              label: 'Hora',
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  _SelectField(
-                                    enabled: !_submitting && _selectedDate != null,
-                                    value: timeLabel,
-                                    onTap: (_submitting || _selectedDate == null)
-                                        ? null
-                                        : _pickTime,
-                                    decoration: _fieldDecoration(
-                                      hint: 'Selecione',
-                                      icon: Icons.access_time_outlined,
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        pair(
+                          _Labeled(
+                            label: 'Paciente',
+                            child: FutureBuilder<List<_DependentOption>>(
+                              future: _dependentsFuture,
+                              builder: (context, snapshot) {
+                                final dependents =
+                                    snapshot.data ?? const <_DependentOption>[];
+                                final items = <DropdownMenuItem<int?>>[
+                                  DropdownMenuItem<int?>(
+                                    value: null,
+                                    child: Text(pacienteLabel),
+                                  ),
+                                  ...dependents.map(
+                                    (d) => DropdownMenuItem<int?>(
+                                      value: d.id,
+                                      child: Text(d.name),
                                     ),
                                   ),
-                                  if (_selectedDate == null) ...[
-                                    const SizedBox(height: 6),
-                                    const Text(
-                                      'Seleciona primeiro a data.',
-                                      style: TextStyle(color: Colors.black54),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                          ),
+                                ];
 
-                          const SizedBox(height: 12),
-
-                          pair(
-                            _Labeled(
-                              label: 'Duração',
-                              child: DropdownButtonFormField<int>(
-                                value: _selectedDurationMinutes,
-                                items: const [
-                                  DropdownMenuItem(value: 15, child: Text('15 min')),
-                                  DropdownMenuItem(value: 30, child: Text('30 min')),
-                                  DropdownMenuItem(value: 45, child: Text('45 min')),
-                                  DropdownMenuItem(value: 60, child: Text('60 min')),
-                                ],
-                                onChanged: _submitting
-                                    ? null
-                                    : (v) {
-                                        if (v == null) return;
-                                        setState(() {
-                                          _selectedDurationMinutes = v;
+                                return DropdownButtonFormField<int?>(
+                                  initialValue: _selectedDependentId,
+                                  items: items,
+                                  onChanged: _submitting
+                                      ? null
+                                      : (v) => setState(() {
+                                          _selectedDependentId = v;
                                           _error = null;
-                                        });
-                                      },
-                                decoration: _fieldDecoration(hint: '30 min'),
-                              ),
-                            ),
-                            _Labeled(
-                              label: 'Tipo de marcação',
-                              child: _SelectField(
-                                enabled: false,
-                                value: 'Vaga',
-                                onTap: null,
-                                decoration: _fieldDecoration(hint: ''),
-                              ),
+                                        }),
+                                  decoration: _fieldDecoration(
+                                    hint: 'Selecione',
+                                  ),
+                                );
+                              },
                             ),
                           ),
-
-                          const SizedBox(height: 12),
                           _Labeled(
-                            label: 'Razão da consulta',
-                            child: TextField(
-                              controller: _reasonController,
-                              enabled: !_submitting,
-                              decoration: _fieldDecoration(hint: ''),
-                              minLines: 2,
-                              maxLines: 4,
+                            label: 'Tratamentos (opcional)',
+                            child: FutureBuilder<List<_PlanOption>>(
+                              future: _plansFuture,
+                              builder: (context, snapshot) {
+                                final plans =
+                                    snapshot.data ?? const <_PlanOption>[];
+                                final items = <DropdownMenuItem<int?>>[
+                                  const DropdownMenuItem<int?>(
+                                    value: null,
+                                    child: Text('-- Sem tratamento --'),
+                                  ),
+                                  ...plans.map(
+                                    (p) => DropdownMenuItem<int?>(
+                                      value: p.id,
+                                      child: Text(p.name),
+                                    ),
+                                  ),
+                                ];
+
+                                return Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    DropdownButtonFormField<int?>(
+                                      initialValue: _selectedTreatmentPlanId,
+                                      items: items,
+                                      onChanged: _submitting
+                                          ? null
+                                          : (v) => setState(() {
+                                              _selectedTreatmentPlanId = v;
+                                              _error = null;
+                                            }),
+                                      decoration: _fieldDecoration(
+                                        hint: '-- Sem tratamento --',
+                                      ),
+                                    ),
+                                    if (plans.isEmpty) ...[
+                                      const SizedBox(height: 6),
+                                      const Text(
+                                        'Sem tratamentos para esta seleção.',
+                                        style: TextStyle(color: Colors.black54),
+                                      ),
+                                    ],
+                                  ],
+                                );
+                              },
                             ),
                           ),
+                        ),
 
-                          const SizedBox(height: 12),
+                        const SizedBox(height: 12),
+
+                        pair(
                           _Labeled(
-                            label: 'Notas internas',
-                            child: TextField(
-                              controller: _internalNotesController,
+                            label: 'Profissional',
+                            child: _SelectField(
                               enabled: !_submitting,
-                              decoration: _fieldDecoration(hint: ''),
-                              minLines: 2,
-                              maxLines: 4,
+                              value: _selectedDoctorId == null
+                                  ? 'Selecione'
+                                  : 'ID ${_selectedDoctorId!}',
+                              onTap: _pickDoctorId,
+                              decoration: _fieldDecoration(hint: 'Selecione'),
                             ),
                           ),
+                          _Labeled(
+                            label: 'Especialidade',
+                            child: _SelectField(
+                              enabled: false,
+                              value: 'Clínica Geral',
+                              onTap: null,
+                              decoration: _fieldDecoration(hint: ''),
+                            ),
+                          ),
+                        ),
 
-                          const SizedBox(height: 12),
-                          if (_selectedDate != null && _selectedTime != null) ...[
-                            Text(
-                              _meetsMinAdvanceTime
-                                  ? 'OK: cumpre a regra das 48h.'
-                                  : 'Atenção: tem de ser pelo menos 48h no futuro.',
-                              style: TextStyle(
-                                color: _meetsMinAdvanceTime
-                                    ? Colors.green.shade700
-                                    : Colors.red.shade700,
-                                fontWeight: FontWeight.w800,
+                        const SizedBox(height: 12),
+
+                        pair(
+                          _Labeled(
+                            label: 'Data',
+                            child: _SelectField(
+                              enabled: !_submitting,
+                              value: dateLabel,
+                              onTap: _pickDate,
+                              decoration: _fieldDecoration(
+                                hint: 'Selecione',
+                                icon: Icons.calendar_today_outlined,
                               ),
                             ),
-                          ] else ...[
-                            const Text(
-                              'O pedido tem de ser para pelo menos 48h no futuro.',
-                              style: TextStyle(color: Colors.black54),
+                          ),
+                          _Labeled(
+                            label: 'Hora',
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                _SelectField(
+                                  enabled:
+                                      !_submitting && _selectedDate != null,
+                                  value: timeLabel,
+                                  onTap: (_submitting || _selectedDate == null)
+                                      ? null
+                                      : _pickTime,
+                                  decoration: _fieldDecoration(
+                                    hint: 'Selecione',
+                                    icon: Icons.access_time_outlined,
+                                  ),
+                                ),
+                                if (_selectedDate == null) ...[
+                                  const SizedBox(height: 6),
+                                  const Text(
+                                    'Seleciona primeiro a data.',
+                                    style: TextStyle(color: Colors.black54),
+                                  ),
+                                ],
+                              ],
                             ),
-                          ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        pair(
+                          _Labeled(
+                            label: 'Duração',
+                            child: DropdownButtonFormField<int>(
+                              initialValue: _selectedDurationMinutes,
+                              items: const [
+                                DropdownMenuItem(
+                                  value: 15,
+                                  child: Text('15 min'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 30,
+                                  child: Text('30 min'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 45,
+                                  child: Text('45 min'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 60,
+                                  child: Text('60 min'),
+                                ),
+                              ],
+                              onChanged: _submitting
+                                  ? null
+                                  : (v) {
+                                      if (v == null) return;
+                                      setState(() {
+                                        _selectedDurationMinutes = v;
+                                        _error = null;
+                                      });
+                                    },
+                              decoration: _fieldDecoration(hint: '30 min'),
+                            ),
+                          ),
+                          _Labeled(
+                            label: 'Tipo de marcação',
+                            child: _SelectField(
+                              enabled: false,
+                              value: 'Vaga',
+                              onTap: null,
+                              decoration: _fieldDecoration(hint: ''),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 12),
+                        _Labeled(
+                          label: 'Razão da consulta',
+                          child: TextField(
+                            controller: _reasonController,
+                            enabled: !_submitting,
+                            decoration: _fieldDecoration(hint: ''),
+                            minLines: 2,
+                            maxLines: 4,
+                          ),
+                        ),
+
+                        const SizedBox(height: 12),
+                        _Labeled(
+                          label: 'Notas internas',
+                          child: TextField(
+                            controller: _internalNotesController,
+                            enabled: !_submitting,
+                            decoration: _fieldDecoration(hint: ''),
+                            minLines: 2,
+                            maxLines: 4,
+                          ),
+                        ),
+
+                        const SizedBox(height: 12),
+                        if (_selectedDate != null && _selectedTime != null) ...[
+                          Text(
+                            _meetsMinAdvanceTime
+                                ? 'OK: cumpre a regra das 48h.'
+                                : 'Atenção: tem de ser pelo menos 48h no futuro.',
+                            style: TextStyle(
+                              color: _meetsMinAdvanceTime
+                                  ? Colors.green.shade700
+                                  : Colors.red.shade700,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ] else ...[
+                          const Text(
+                            'O pedido tem de ser para pelo menos 48h no futuro.',
+                            style: TextStyle(color: Colors.black54),
+                          ),
                         ],
-                      );
-                    },
-                  ),
+                      ],
+                    );
+                  },
+                ),
 
-                  if (_error != null) ...[
-                    const SizedBox(height: 14),
-                    Text(
-                      _error!,
-                      style: TextStyle(
-                        color: Colors.red.shade700,
-                        fontWeight: FontWeight.w700,
+                if (_error != null) ...[
+                  const SizedBox(height: 14),
+                  Text(
+                    _error!,
+                    style: TextStyle(
+                      color: Colors.red.shade700,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: _submitting
+                            ? null
+                            : () => Navigator.of(context).pop(false),
+                        style: OutlinedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          side: const BorderSide(color: _fieldBorder),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        child: const Text('Cancelar'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: FilledButton(
+                        onPressed: _submitting ? null : _submit,
+                        style: FilledButton.styleFrom(
+                          backgroundColor: scheme.primary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        child: _submitting
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text('Enviar pedido'),
                       ),
                     ),
                   ],
-
-                  const SizedBox(height: 18),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: _submitting
-                              ? null
-                              : () => Navigator.of(context).pop(false),
-                          style: OutlinedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            side: const BorderSide(color: _fieldBorder),
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                          ),
-                          child: const Text('Cancelar'),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: FilledButton(
-                          onPressed: _submitting ? null : _submit,
-                          style: FilledButton.styleFrom(
-                            backgroundColor: scheme.primary,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                          ),
-                          child: _submitting
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : const Text('Enviar pedido'),
-                        ),
-                      ),
-                    ],
-                  ),
+                ),
               ],
             ),
           ),
@@ -737,11 +771,7 @@ class _Labeled extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _FieldLabel(label),
-        const SizedBox(height: 8),
-        child,
-      ],
+      children: [_FieldLabel(label), const SizedBox(height: 8), child],
     );
   }
 }
@@ -793,10 +823,9 @@ class _FieldLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: Theme.of(context)
-          .textTheme
-          .bodyMedium
-          ?.copyWith(fontWeight: FontWeight.w800),
+      style: Theme.of(
+        context,
+      ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w800),
     );
   }
 }

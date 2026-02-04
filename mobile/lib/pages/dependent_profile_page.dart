@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../api/api_client.dart';
 import '../app/session_scope.dart';
+import '../widgets/app/app_scaffold.dart';
 
 class DependentProfilePage extends StatefulWidget {
   final int dependentId;
@@ -36,12 +37,15 @@ class _DependentProfilePageState extends State<DependentProfilePage> {
     if (patientId == null) throw Exception('Sessão inválida.');
 
     try {
-      final json = await session.patientApi.getDependent(patientId, widget.dependentId);
+      final json = await session.patientApi.getDependent(
+        patientId,
+        widget.dependentId,
+      );
       final data = (json['dependent'] is Map)
           ? (json['dependent'] as Map).cast<String, dynamic>()
           : (json['dependente'] is Map)
-              ? (json['dependente'] as Map).cast<String, dynamic>()
-              : json;
+          ? (json['dependente'] as Map).cast<String, dynamic>()
+          : json;
       return data;
     } catch (e) {
       final status = (e is ApiException) ? e.status : null;
@@ -55,125 +59,124 @@ class _DependentProfilePageState extends State<DependentProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    final bg = const Color(0xFFFAF7F4);
-
-    return Scaffold(
-      backgroundColor: bg,
-      appBar: AppBar(
-        title: Text(widget.dependentName ?? 'Dependente'),
-        backgroundColor: bg,
-        elevation: 0,
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'Perfil do dependente',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+    return AppScaffold(
+      title: widget.dependentName ?? 'Dependente',
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color.fromRGBO(0, 0, 0, 0.03),
+                    blurRadius: 8,
+                    offset: Offset(0, 4),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color.fromRGBO(0, 0, 0, 0.03),
-                      blurRadius: 8,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: FutureBuilder<Map<String, dynamic>>(
-                  future: _future,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState != ConnectionState.done) {
+              child: FutureBuilder<Map<String, dynamic>>(
+                future: _future,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState != ConnectionState.done) {
+                    return const Padding(
+                      padding: EdgeInsets.all(8),
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+
+                  if (snapshot.hasError) {
+                    final err = snapshot.error;
+                    final status = (err is ApiException) ? err.status : null;
+                    if ((status == 401 || status == 403) &&
+                        !_handledAuthError) {
+                      _handledAuthError = true;
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        final session = SessionScope.of(context);
+                        final navigator = Navigator.of(context);
+                        session.logout().then((_) {
+                          if (!mounted) return;
+                          navigator.pushNamedAndRemoveUntil(
+                            '/login',
+                            (r) => false,
+                          );
+                        });
+                      });
                       return const Padding(
                         padding: EdgeInsets.all(8),
                         child: Center(child: CircularProgressIndicator()),
                       );
                     }
 
-                    if (snapshot.hasError) {
-                      final err = snapshot.error;
-                      final status = (err is ApiException) ? err.status : null;
-                      if ((status == 401 || status == 403) && !_handledAuthError) {
-                        _handledAuthError = true;
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          final session = SessionScope.of(context);
-                          final navigator = Navigator.of(context);
-                          session.logout().then((_) {
-                            if (!mounted) return;
-                            navigator.pushNamedAndRemoveUntil('/login', (r) => false);
-                          });
+                    return _ErrorCard(
+                      message: 'Não foi possível carregar o dependente.',
+                      details: err?.toString(),
+                      onRetry: () {
+                        setState(() {
+                          _handledAuthError = false;
+                          _future = _load();
                         });
-                        return const Padding(
-                          padding: EdgeInsets.all(8),
-                          child: Center(child: CircularProgressIndicator()),
-                        );
-                      }
-
-                      return _ErrorCard(
-                        message: 'Não foi possível carregar o dependente.',
-                        details: err?.toString(),
-                        onRetry: () {
-                          setState(() {
-                            _handledAuthError = false;
-                            _future = _load();
-                          });
-                        },
-                      );
-                    }
-
-                    final dep = snapshot.data ?? <String, dynamic>{};
-
-                    final nome = _firstString(dep, ['nome', 'name']) ?? widget.dependentName;
-                    final email = _firstString(dep, ['email']);
-                    final telefone = _firstString(dep, ['telefone', 'phone']);
-                    final sexo = _firstString(dep, ['sexo', 'gender']);
-                    final endereco = _firstString(dep, ['endereco', 'address']);
-                    final nif = _firstString(dep, ['nif']);
-                    final numeroUtente = _firstString(dep, ['numero_utente', 'numeroUtente']);
-                    final dataNascimento = _formatDate(_firstString(
-                      dep,
-                      ['data_nascimento', 'dataNascimento', 'birth_date', 'dob'],
-                    ));
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _SectionTitle('Informações pessoais'),
-                        const SizedBox(height: 10),
-                        _InfoCard(
-                          rows: [
-                            _InfoRow('Nome', _display(nome)),
-                            _InfoRow('Email', _display(email)),
-                            _InfoRow('Telefone', _display(telefone)),
-                            _InfoRow('Sexo', _display(sexo)),
-                            _InfoRow('Endereço', _display(endereco)),
-                            _InfoRow('Data nascimento', _display(dataNascimento)),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        _SectionTitle('Documentos'),
-                        const SizedBox(height: 10),
-                        _InfoCard(
-                          rows: [
-                            _InfoRow('NIF', _display(nif)),
-                            _InfoRow('Nº utente', _display(numeroUtente)),
-                          ],
-                        ),
-                      ],
+                      },
                     );
-                  },
-                ),
+                  }
+
+                  final dep = snapshot.data ?? <String, dynamic>{};
+
+                  final nome =
+                      _firstString(dep, ['nome', 'name']) ??
+                      widget.dependentName;
+                  final email = _firstString(dep, ['email']);
+                  final telefone = _firstString(dep, ['telefone', 'phone']);
+                  final sexo = _firstString(dep, ['sexo', 'gender']);
+                  final endereco = _firstString(dep, ['endereco', 'address']);
+                  final nif = _firstString(dep, ['nif']);
+                  final numeroUtente = _firstString(dep, [
+                    'numero_utente',
+                    'numeroUtente',
+                  ]);
+                  final dataNascimento = _formatDate(
+                    _firstString(dep, [
+                      'data_nascimento',
+                      'dataNascimento',
+                      'birth_date',
+                      'dob',
+                    ]),
+                  );
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _SectionTitle('Informações pessoais'),
+                      const SizedBox(height: 10),
+                      _InfoCard(
+                        rows: [
+                          _InfoRow('Nome', _display(nome)),
+                          _InfoRow('Email', _display(email)),
+                          _InfoRow('Telefone', _display(telefone)),
+                          _InfoRow('Sexo', _display(sexo)),
+                          _InfoRow('Endereço', _display(endereco)),
+                          _InfoRow('Data nascimento', _display(dataNascimento)),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      _SectionTitle('Documentos'),
+                      const SizedBox(height: 10),
+                      _InfoCard(
+                        rows: [
+                          _InfoRow('NIF', _display(nif)),
+                          _InfoRow('Nº utente', _display(numeroUtente)),
+                        ],
+                      ),
+                    ],
+                  );
+                },
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -188,7 +191,9 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+      style: Theme.of(
+        context,
+      ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
     );
   }
 }
@@ -238,10 +243,10 @@ class _KeyValueRow extends StatelessWidget {
           flex: 5,
           child: Text(
             label,
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(color: Colors.black54, fontWeight: FontWeight.w700),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Colors.black54,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
         const SizedBox(width: 12),
@@ -250,7 +255,9 @@ class _KeyValueRow extends StatelessWidget {
           child: Text(
             value,
             textAlign: TextAlign.right,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
           ),
         ),
       ],
@@ -276,22 +283,27 @@ class _ErrorCard extends StatelessWidget {
       children: [
         Text(
           message,
-          style: Theme.of(context)
-              .textTheme
-              .bodyMedium
-              ?.copyWith(color: Colors.red.shade700, fontWeight: FontWeight.w700),
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: Colors.red.shade700,
+            fontWeight: FontWeight.w700,
+          ),
         ),
         if (details != null && details!.isNotEmpty) ...[
           const SizedBox(height: 8),
           Text(
             details!,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Colors.black54),
           ),
         ],
         const SizedBox(height: 12),
         SizedBox(
           height: 44,
-          child: OutlinedButton(onPressed: onRetry, child: const Text('Tentar novamente')),
+          child: OutlinedButton(
+            onPressed: onRetry,
+            child: const Text('Tentar novamente'),
+          ),
         ),
       ],
     );

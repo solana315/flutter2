@@ -9,6 +9,7 @@ import '../api/declarations_api.dart';
 import '../api/files_api.dart';
 import '../api/models.dart';
 import '../app/session_scope.dart';
+import '../widgets/app/app_colors.dart';
 
 class DeclarationsDocsPage extends StatefulWidget {
   const DeclarationsDocsPage({super.key});
@@ -32,6 +33,7 @@ class _DeclarationsDocsPageState extends State<DeclarationsDocsPage> {
   List<ApiDeclarationItem> _declarations = const [];
   String _declarationsQuery = '';
   int? _downloadingDeclarationId;
+  int? _downloadingPresenceConsultaId;
 
   late FilesApi _filesApi;
   late DeclarationsApi _declarationsApi;
@@ -54,10 +56,7 @@ class _DeclarationsDocsPageState extends State<DeclarationsDocsPage> {
   }
 
   Future<void> _refreshAll() async {
-    await Future.wait([
-      _loadDocs(),
-      _loadDeclarations(),
-    ]);
+    await Future.wait([_loadDocs(), _loadDeclarations()]);
   }
 
   Future<void> _loadDocs() async {
@@ -145,7 +144,11 @@ class _DeclarationsDocsPageState extends State<DeclarationsDocsPage> {
     final q = _docsQuery.trim().toLowerCase();
     if (q.isEmpty) return _docs;
     return _docs.where((d) {
-      final hay = [d.name, d.mimeType, d.category].whereType<String>().join(' ');
+      final hay = [
+        d.name,
+        d.mimeType,
+        d.category,
+      ].whereType<String>().join(' ');
       return hay.toLowerCase().contains(q);
     }).toList();
   }
@@ -166,8 +169,7 @@ class _DeclarationsDocsPageState extends State<DeclarationsDocsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final bg = scheme.surfaceContainerLow;
+    final bg = AppColors.bg;
 
     return DefaultTabController(
       length: 2,
@@ -176,8 +178,23 @@ class _DeclarationsDocsPageState extends State<DeclarationsDocsPage> {
         appBar: AppBar(
           backgroundColor: bg,
           elevation: 0,
-          title: const Text('Declarações/Docs'),
+          surfaceTintColor: Colors.transparent,
+          iconTheme: const IconThemeData(color: AppColors.primaryGold),
+          title: const Text(
+            'Declarações/Docs',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
           bottom: const TabBar(
+            labelColor: AppColors.textPrimary,
+            unselectedLabelColor: AppColors.textSecondary,
+            indicator: BoxDecoration(
+              color: AppColors.beige,
+              borderRadius: BorderRadius.all(Radius.circular(20)),
+            ),
+            indicatorSize: TabBarIndicatorSize.tab,
             tabs: [
               Tab(text: 'Docs'),
               Tab(text: 'Declarações'),
@@ -206,7 +223,9 @@ class _DeclarationsDocsPageState extends State<DeclarationsDocsPage> {
               onQueryChanged: (v) => setState(() => _declarationsQuery = v),
               onRefresh: _loadDeclarations,
               downloadingId: _downloadingDeclarationId,
+              downloadingPresenceConsultaId: _downloadingPresenceConsultaId,
               onDownload: _downloadDeclaration,
+              onDownloadPresence: _downloadPresenceByConsulta,
             ),
           ],
         ),
@@ -218,19 +237,20 @@ class _DeclarationsDocsPageState extends State<DeclarationsDocsPage> {
     setState(() => _downloadingDocId = doc.id);
     try {
       final res = await _filesApi.downloadFile(doc.id);
-      await _saveAndOpen(
-        bytes: res.bytes,
-        filename: res.filename ?? doc.name,
-      );
+      await _saveAndOpen(bytes: res.bytes, filename: res.filename ?? doc.name);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Documento descarregado.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Documento descarregado.')));
     } catch (e) {
       if (!mounted) return;
       _handleAuthIfNeeded(e);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_friendlyError(e, fallback: 'Erro ao descarregar documento.'))),
+        SnackBar(
+          content: Text(
+            _friendlyError(e, fallback: 'Erro ao descarregar documento.'),
+          ),
+        ),
       );
     } finally {
       if (mounted) {
@@ -242,14 +262,55 @@ class _DeclarationsDocsPageState extends State<DeclarationsDocsPage> {
   Future<void> _downloadDeclaration(ApiDeclarationItem declaration) async {
     setState(() => _downloadingDeclarationId = declaration.id);
     try {
-      final res = await _declarationsApi.downloadDeclaration(declaration: declaration);
+      final res = await _declarationsApi.downloadDeclaration(
+        declaration: declaration,
+      );
       await _saveAndOpen(
         bytes: res.bytes,
         filename: res.filename ?? 'declaracao_${declaration.id}.pdf',
       );
       if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Declaração descarregada.')));
+    } catch (e) {
+      if (!mounted) return;
+      _handleAuthIfNeeded(e);
+
+      final status = (e is ApiException) ? e.status : null;
+      if (status == 404 || status == 400 || status == 409) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Disponível apenas após a consulta.')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _friendlyError(e, fallback: 'Erro ao descarregar declaração.'),
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _downloadingDeclarationId = null);
+      }
+    }
+  }
+
+  Future<void> _downloadPresenceByConsulta(int consultaId) async {
+    setState(() => _downloadingPresenceConsultaId = consultaId);
+    try {
+      final res = await _declarationsApi.downloadPresenceByConsulta(
+        consultaId: consultaId,
+      );
+      await _saveAndOpen(
+        bytes: res.bytes,
+        filename: res.filename ?? 'declaracao_presenca_$consultaId.pdf',
+      );
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Declaração descarregada.')),
+        const SnackBar(content: Text('Declaração de presença descarregada.')),
       );
     } catch (e) {
       if (!mounted) return;
@@ -262,12 +323,19 @@ class _DeclarationsDocsPageState extends State<DeclarationsDocsPage> {
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(_friendlyError(e, fallback: 'Erro ao descarregar declaração.'))),
+          SnackBar(
+            content: Text(
+              _friendlyError(
+                e,
+                fallback: 'Erro ao descarregar declaração de presença.',
+              ),
+            ),
+          ),
         );
       }
     } finally {
       if (mounted) {
-        setState(() => _downloadingDeclarationId = null);
+        setState(() => _downloadingPresenceConsultaId = null);
       }
     }
   }
@@ -332,10 +400,10 @@ class _DocsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-
     if (loading && items.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.primaryGold),
+      );
     }
 
     if (error != null && items.isEmpty) {
@@ -348,17 +416,13 @@ class _DocsTab extends StatelessWidget {
 
     return RefreshIndicator(
       onRefresh: onRefresh,
+      color: AppColors.primaryGold,
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
         children: [
-          TextField(
-            decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.search),
-              hintText: 'Pesquisar documentos…',
-              border: OutlineInputBorder(),
-              isDense: true,
-            ),
+          _SearchCard(
+            hintText: 'Pesquisar documentos…',
             onChanged: onQueryChanged,
           ),
           const SizedBox(height: 12),
@@ -368,73 +432,98 @@ class _DocsTab extends StatelessWidget {
               child: Center(
                 child: Text(
                   'Sem documentos para mostrar.',
-                  style: TextStyle(color: scheme.onSurfaceVariant),
+                  style: const TextStyle(color: AppColors.textSecondary),
                 ),
               ),
             )
           else
             ...items.map((doc) {
               final downloading = downloadingId == doc.id;
-              return Container(
+              return _AppCard(
                 margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color.fromRGBO(0, 0, 0, 0.03),
-                      blurRadius: 10,
-                      offset: Offset(0, 6),
-                    ),
-                  ],
-                ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 42,
-                      height: 42,
-                      decoration: BoxDecoration(
-                        color: scheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(Icons.description_outlined),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            doc.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 14,
-                            ),
+                    Row(
+                      children: [
+                        Container(
+                          width: 42,
+                          height: 42,
+                          decoration: BoxDecoration(
+                            color: AppColors.beige,
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          const SizedBox(height: 6),
-                          Text(
-                            _docSubtitle(doc),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(color: scheme.onSurfaceVariant),
+                          child: const Icon(
+                            Icons.description_outlined,
+                            color: AppColors.primaryGold,
                           ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                doc.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.w800),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                _docSubtitle(doc),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(color: AppColors.textSecondary),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    IconButton(
-                      tooltip: 'Descarregar',
-                      onPressed: downloading ? null : () => onDownload(doc),
-                      icon: downloading
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.download_rounded),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: [
+                        if (doc.consultaId != null)
+                          _Badge('Consulta #${doc.consultaId}'),
+                        if (doc.dependentId != null)
+                          _Badge('Dependente #${doc.dependentId}'),
+                        if (doc.mimeType != null &&
+                            doc.mimeType!.trim().isNotEmpty)
+                          _Badge(doc.mimeType!),
+                        if (doc.sizeBytes != null)
+                          _Badge(_formatBytes(doc.sizeBytes!)),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      height: 44,
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: downloading ? null : () => onDownload(doc),
+                        icon: downloading
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(Icons.download_rounded, size: 18),
+                        label: const Text('Descarregar/Abrir'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryGold,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -447,16 +536,26 @@ class _DocsTab extends StatelessWidget {
 
   static String _docSubtitle(ApiFileItem doc) {
     final parts = <String>[];
-    if (doc.category != null && doc.category!.trim().isNotEmpty) {
-      parts.add(doc.category!.trim());
-    } else if (doc.mimeType != null && doc.mimeType!.trim().isNotEmpty) {
-      parts.add(doc.mimeType!.trim());
-    }
     final date = doc.createdAt;
     if (date != null) {
-      parts.add('${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}');
+      parts.add(
+        '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}',
+      );
+    }
+    if (doc.category != null && doc.category!.trim().isNotEmpty) {
+      parts.insert(0, doc.category!.trim());
     }
     return parts.isEmpty ? 'Documento' : parts.join(' • ');
+  }
+
+  static String _formatBytes(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    final kb = bytes / 1024.0;
+    if (kb < 1024) return '${kb.toStringAsFixed(kb < 10 ? 1 : 0)} KB';
+    final mb = kb / 1024.0;
+    if (mb < 1024) return '${mb.toStringAsFixed(mb < 10 ? 1 : 0)} MB';
+    final gb = mb / 1024.0;
+    return '${gb.toStringAsFixed(gb < 10 ? 1 : 0)} GB';
   }
 }
 
@@ -469,7 +568,9 @@ class _DeclarationsTab extends StatelessWidget {
   final ValueChanged<String> onQueryChanged;
   final Future<void> Function() onRefresh;
   final int? downloadingId;
+  final int? downloadingPresenceConsultaId;
   final void Function(ApiDeclarationItem) onDownload;
+  final void Function(int consultaId) onDownloadPresence;
 
   const _DeclarationsTab({
     required this.backgroundColor,
@@ -480,15 +581,17 @@ class _DeclarationsTab extends StatelessWidget {
     required this.onQueryChanged,
     required this.onRefresh,
     required this.downloadingId,
+    required this.downloadingPresenceConsultaId,
     required this.onDownload,
+    required this.onDownloadPresence,
   });
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-
     if (loading && items.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.primaryGold),
+      );
     }
 
     if (error != null && items.isEmpty) {
@@ -501,17 +604,13 @@ class _DeclarationsTab extends StatelessWidget {
 
     return RefreshIndicator(
       onRefresh: onRefresh,
+      color: AppColors.primaryGold,
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
         children: [
-          TextField(
-            decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.search),
-              hintText: 'Pesquisar declarações…',
-              border: OutlineInputBorder(),
-              isDense: true,
-            ),
+          _SearchCard(
+            hintText: 'Pesquisar declarações…',
             onChanged: onQueryChanged,
           ),
           const SizedBox(height: 12),
@@ -521,85 +620,140 @@ class _DeclarationsTab extends StatelessWidget {
               child: Center(
                 child: Text(
                   'Sem declarações para mostrar.',
-                  style: TextStyle(color: scheme.onSurfaceVariant),
+                  style: const TextStyle(color: AppColors.textSecondary),
                 ),
               ),
             )
           else
             ...items.map((d) {
               final downloading = downloadingId == d.id;
-              return Container(
+              final consultaId = d.consultaId;
+              final downloadingPresence =
+                  consultaId != null &&
+                  downloadingPresenceConsultaId == consultaId;
+              return _AppCard(
                 margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color.fromRGBO(0, 0, 0, 0.03),
-                      blurRadius: 10,
-                      offset: Offset(0, 6),
-                    ),
-                  ],
-                ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 42,
-                      height: 42,
-                      decoration: BoxDecoration(
-                        color: scheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(Icons.picture_as_pdf_outlined),
+                    Row(
+                      children: [
+                        Container(
+                          width: 42,
+                          height: 42,
+                          decoration: BoxDecoration(
+                            color: AppColors.beige,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.picture_as_pdf_outlined,
+                            color: AppColors.primaryGold,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                d.title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.w800),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                _declSubtitle(d),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(color: AppColors.textSecondary),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            d.title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 14,
+                    const SizedBox(height: 10),
+                    if (consultaId != null)
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 6,
+                        children: [_Badge('Consulta #$consultaId')],
+                      ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SizedBox(
+                            height: 44,
+                            child: ElevatedButton.icon(
+                              onPressed: downloading
+                                  ? null
+                                  : () => onDownload(d),
+                              icon: downloading
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Icon(
+                                      Icons.download_rounded,
+                                      size: 18,
+                                    ),
+                              label: const Text('Descarregar'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryGold,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 6),
-                          Text(
-                            _declSubtitle(d),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(color: scheme.onSurfaceVariant),
+                        ),
+                        if (consultaId != null) ...[
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: SizedBox(
+                              height: 44,
+                              child: OutlinedButton.icon(
+                                onPressed: (downloadingPresence || downloading)
+                                    ? null
+                                    : () => onDownloadPresence(consultaId),
+                                icon: downloadingPresence
+                                    ? const SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: AppColors.primaryGold,
+                                        ),
+                                      )
+                                    : const Icon(
+                                        Icons.event_available_outlined,
+                                        size: 18,
+                                        color: AppColors.primaryGold,
+                                      ),
+                                label: const Text('Presença'),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: AppColors.primaryGold,
+                                  side: const BorderSide(
+                                    color: AppColors.primaryGold,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
                         ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    ElevatedButton.icon(
-                      onPressed: downloading ? null : () => onDownload(d),
-                      icon: downloading
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Icon(Icons.download_rounded, size: 18),
-                      label: const Text('PDF'),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
+                      ],
                     ),
                   ],
                 ),
@@ -612,18 +766,17 @@ class _DeclarationsTab extends StatelessWidget {
 
   static String _declSubtitle(ApiDeclarationItem d) {
     final parts = <String>[];
-    if (d.subtitle != null && d.subtitle!.trim().isNotEmpty) {
-      parts.add(d.subtitle!.trim());
-    }
-    if (d.doctor != null && d.doctor!.trim().isNotEmpty) {
-      parts.add(d.doctor!.trim());
-    }
-    if (d.specialty != null && d.specialty!.trim().isNotEmpty) {
-      parts.add(d.specialty!.trim());
-    }
     final date = d.date;
     if (date != null) {
-      parts.add('${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}');
+      parts.add(
+        '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}',
+      );
+    }
+    if (d.consultaId != null) {
+      parts.insert(0, 'Consulta #${d.consultaId}');
+    }
+    if (d.subtitle != null && d.subtitle!.trim().isNotEmpty) {
+      parts.add(d.subtitle!.trim());
     }
     return parts.isEmpty ? 'Declaração' : parts.join(' • ');
   }
@@ -642,7 +795,6 @@ class _ErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -653,14 +805,15 @@ class _ErrorState extends StatelessWidget {
               message,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+                fontWeight: FontWeight.w800,
+                color: Colors.red,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               details,
               textAlign: TextAlign.center,
-              style: TextStyle(color: scheme.onSurfaceVariant),
+              style: const TextStyle(color: AppColors.textSecondary),
               maxLines: 4,
               overflow: TextOverflow.ellipsis,
             ),
@@ -669,9 +822,104 @@ class _ErrorState extends StatelessWidget {
               onPressed: () => onRetry(),
               icon: const Icon(Icons.refresh),
               label: const Text('Tentar novamente'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryGold,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _AppCard extends StatelessWidget {
+  final Widget child;
+  final EdgeInsetsGeometry? margin;
+
+  const _AppCard({required this.child, this.margin});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: margin,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.black12),
+        boxShadow: const [
+          BoxShadow(
+            color: Color.fromRGBO(0, 0, 0, 0.03),
+            blurRadius: 8,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+}
+
+class _Badge extends StatelessWidget {
+  final String text;
+
+  const _Badge(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.beige,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        text,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: AppColors.textPrimary,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
+class _SearchCard extends StatelessWidget {
+  final String hintText;
+  final ValueChanged<String> onChanged;
+
+  const _SearchCard({required this.hintText, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.black12),
+        boxShadow: const [
+          BoxShadow(
+            color: Color.fromRGBO(0, 0, 0, 0.02),
+            blurRadius: 6,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: TextField(
+        decoration: InputDecoration(
+          prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
+          hintText: hintText,
+          hintStyle: const TextStyle(color: AppColors.textSecondary),
+          border: InputBorder.none,
+          isDense: true,
+        ),
+        onChanged: onChanged,
       ),
     );
   }

@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
+
 import 'app/session_scope.dart';
+=======
+import 'schedule_appointment_sheet.dart';
+>>>>>>> c79b55e79eb14f3463c6268bbb1d4a0f249ea436
 import 'widgets/app_bottom_nav.dart';
 import 'widgets/grid_menu.dart';
-import 'widgets/menu/atalhosCard.dart';
+import 'widgets/menu/atalhos_card.dart';
 
 class Menu extends StatefulWidget {
   const Menu({super.key});
@@ -109,7 +114,10 @@ class _MenuState extends State<Menu> {
                               ),
                             ),
                             onPressed: () {
-                              Navigator.pushNamed(context, '/asminhasconsultas');
+                              Navigator.pushNamed(
+                                context,
+                                '/asminhasconsultas',
+                              );
                             },
                             child: const Text(
                               'Marcar Consulta',

@@ -1,10 +1,9 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../api/api_client.dart';
 import '../app/session_scope.dart';
+import '../widgets/app/app_scaffold.dart';
 import 'dependent_profile_page.dart';
 
 class PatientsPage extends StatefulWidget {
@@ -36,14 +35,8 @@ class _PatientsPageState extends State<PatientsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final bg = const Color(0xFFFAF7F4);
-    return Scaffold(
-      backgroundColor: bg,
-      appBar: AppBar(
-        title: const Text('Dependentes'),
-        backgroundColor: bg,
-        elevation: 0,
-      ),
+    return AppScaffold(
+      title: 'Dependentes',
       body: RefreshIndicator(
         onRefresh: () async {
           setState(() {
@@ -89,19 +82,12 @@ class _PatientsPageState extends State<PatientsPage> {
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
               children: [
                 const Text(
-                  'Dependentes',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
-                ),
-                const SizedBox(height: 6),
-                const Text(
                   'Os seus dependentes associados',
                   style: TextStyle(color: Colors.black54),
                 ),
                 const SizedBox(height: 14),
                 if (list.isEmpty)
-                  _EmptyCard(
-                    text: 'Sem dependentes.',
-                  )
+                  _EmptyCard(text: 'Sem dependentes.')
                 else
                   _DependentsCard(
                     items: list,
@@ -119,7 +105,9 @@ class _PatientsPageState extends State<PatientsPage> {
     final id = _dependentId(item);
     if (id == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Não foi possível abrir: ID do dependente em falta.')),
+        const SnackBar(
+          content: Text('Não foi possível abrir: ID do dependente em falta.'),
+        ),
       );
       return;
     }
@@ -139,7 +127,10 @@ class _PatientsPageState extends State<PatientsPage> {
   static List<Map<String, dynamic>> _extractList(Map<String, dynamic> json) {
     List<Map<String, dynamic>> asMapList(Object? v) {
       if (v is List) {
-        return v.whereType<Map>().map((e) => e.cast<String, dynamic>()).toList();
+        return v
+            .whereType<Map>()
+            .map((e) => e.cast<String, dynamic>())
+            .toList();
       }
       if (v is Map) {
         final m = v.cast<String, dynamic>();
@@ -197,8 +188,8 @@ int? _dependentId(Map<String, dynamic> item) {
   final nested = (item['dependent'] is Map)
       ? (item['dependent'] as Map).cast<String, dynamic>()
       : (item['dependente'] is Map)
-          ? (item['dependente'] as Map).cast<String, dynamic>()
-          : null;
+      ? (item['dependente'] as Map).cast<String, dynamic>()
+      : null;
   if (nested == null) return null;
 
   return _asInt(
@@ -223,7 +214,9 @@ void _onTapViewDependent(
   final id = _dependentId(item);
   if (id == null) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Não foi possível abrir: ID do dependente em falta.')),
+      const SnackBar(
+        content: Text('Não foi possível abrir: ID do dependente em falta.'),
+      ),
     );
     return;
   }
@@ -252,7 +245,10 @@ class _ErrorView extends StatelessWidget {
           children: [
             Text('Erro ao carregar: ${error ?? 'desconhecido'}'),
             const SizedBox(height: 12),
-            ElevatedButton(onPressed: onRetry, child: const Text('Tentar novamente')),
+            ElevatedButton(
+              onPressed: onRetry,
+              child: const Text('Tentar novamente'),
+            ),
           ],
         ),
       ),
@@ -310,38 +306,48 @@ class _DependentsTable extends StatelessWidget {
           DataColumn(label: Text('Sexo')),
           DataColumn(label: Text('Ações')),
         ],
-        rows: items.map((item) {
-          final nome = _firstString(item, ['nome', 'name', 'paciente_nome']) ?? 'Dependente';
-          final dataNasc = _formatDate(_firstString(
-            item,
-            ['data_nascimento', 'dataNascimento', 'birth_date', 'dob'],
-          ));
-          final sexo = _firstString(item, ['sexo', 'gender']);
+        rows: items
+            .map((item) {
+              final nome =
+                  _firstString(item, ['nome', 'name', 'paciente_nome']) ??
+                  'Dependente';
+              final dataNasc = _formatDate(
+                _firstString(item, [
+                  'data_nascimento',
+                  'dataNascimento',
+                  'birth_date',
+                  'dob',
+                ]),
+              );
+              final sexo = _firstString(item, ['sexo', 'gender']);
 
-          return DataRow(
-            cells: [
-              DataCell(Text(nome)),
-              DataCell(Text(_display(dataNasc))),
-              DataCell(Text(_display(sexo))),
-              DataCell(
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: OutlinedButton(
-                    onPressed: () => _onTapViewDependent(
-                      context,
-                      item: item,
-                      onView: onView,
+              return DataRow(
+                cells: [
+                  DataCell(Text(nome)),
+                  DataCell(Text(_display(dataNasc))),
+                  DataCell(Text(_display(sexo))),
+                  DataCell(
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: OutlinedButton(
+                        onPressed: () => _onTapViewDependent(
+                          context,
+                          item: item,
+                          onView: onView,
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: const Text('Ver'),
+                      ),
                     ),
-                    style: OutlinedButton.styleFrom(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                    child: const Text('Ver'),
                   ),
-                ),
-              ),
-            ],
-          );
-        }).toList(growable: false),
+                ],
+              );
+            })
+            .toList(growable: false),
       ),
     );
   }
@@ -372,11 +378,16 @@ class _DependentRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final nome = _firstString(item, ['nome', 'name', 'paciente_nome']) ?? 'Dependente';
-    final dataNasc = _formatDate(_firstString(
-      item,
-      ['data_nascimento', 'dataNascimento', 'birth_date', 'dob'],
-    ));
+    final nome =
+        _firstString(item, ['nome', 'name', 'paciente_nome']) ?? 'Dependente';
+    final dataNasc = _formatDate(
+      _firstString(item, [
+        'data_nascimento',
+        'dataNascimento',
+        'birth_date',
+        'dob',
+      ]),
+    );
     final sexo = _firstString(item, ['sexo', 'gender']);
 
     return Row(
@@ -392,7 +403,10 @@ class _DependentRow extends StatelessWidget {
                 spacing: 16,
                 runSpacing: 6,
                 children: [
-                  _MiniField(label: 'Data nascimento', value: _display(dataNasc)),
+                  _MiniField(
+                    label: 'Data nascimento',
+                    value: _display(dataNasc),
+                  ),
                   _MiniField(label: 'Sexo', value: _display(sexo)),
                 ],
               ),
@@ -401,13 +415,12 @@ class _DependentRow extends StatelessWidget {
         ),
         const SizedBox(width: 12),
         OutlinedButton(
-          onPressed: () => _onTapViewDependent(
-            context,
-            item: item,
-            onView: onView,
-          ),
+          onPressed: () =>
+              _onTapViewDependent(context, item: item, onView: onView),
           style: OutlinedButton.styleFrom(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
           child: const Text('Ver'),
         ),
@@ -428,7 +441,10 @@ class _MiniField extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontSize: 12, color: Colors.black54)),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 12, color: Colors.black54),
+          ),
           const SizedBox(height: 2),
           Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
         ],
@@ -439,129 +455,28 @@ class _MiniField extends StatelessWidget {
 
 class _EmptyCard extends StatelessWidget {
   final String text;
-  final String? actionText;
-  final VoidCallback? onAction;
 
-  const _EmptyCard({required this.text, this.actionText, this.onAction});
+  const _EmptyCard({required this.text});
 
   @override
   Widget build(BuildContext context) {
-    final hasAction = actionText != null && onAction != null;
     return Material(
       color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: hasAction ? onAction : null,
-        onLongPress: hasAction ? onAction : null,
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: const [
-              BoxShadow(
-                color: Color.fromRGBO(0, 0, 0, 0.03),
-                blurRadius: 10,
-                offset: Offset(0, 6),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Expanded(child: Text(text, textAlign: TextAlign.center)),
-              if (hasAction) ...[
-                const SizedBox(width: 12),
-                OutlinedButton.icon(
-                  onPressed: onAction,
-                  icon: const Icon(Icons.bug_report_outlined, size: 18),
-                  label: Text(actionText!),
-                  style: OutlinedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _InfoCard extends StatelessWidget {
-  final List<_InfoRow> rows;
-  const _InfoCard({required this.rows});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.black12),
-      ),
-      child: Column(
-        children: [
-          for (int i = 0; i < rows.length; i++) ...[
-            if (i > 0) const Divider(height: 18),
-            rows[i],
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: const [
+            BoxShadow(
+              color: Color.fromRGBO(0, 0, 0, 0.03),
+              blurRadius: 10,
+              offset: Offset(0, 6),
+            ),
           ],
-        ],
+        ),
+        child: Text(text, textAlign: TextAlign.center),
       ),
-    );
-  }
-}
-
-class _InfoRow extends StatelessWidget {
-  final String label;
-  final String value;
-  const _InfoRow(this.label, this.value);
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          flex: 4,
-          child: Text(label, style: const TextStyle(color: Colors.black54)),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          flex: 6,
-          child: Text(value, style: const TextStyle(fontWeight: FontWeight.w700)),
-        ),
-      ],
-    );
-  }
-}
-
-class _JsonBox extends StatelessWidget {
-  final Map<String, dynamic> json;
-  const _JsonBox({required this.json});
-
-  @override
-  Widget build(BuildContext context) {
-    return ExpansionTile(
-      tilePadding: EdgeInsets.zero,
-      title: const Text('Detalhes', style: TextStyle(fontWeight: FontWeight.w700)),
-      children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF1F3F5),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Text(
-            const JsonEncoder.withIndent('  ').convert(json),
-            style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
-          ),
-        ),
-      ],
     );
   }
 }

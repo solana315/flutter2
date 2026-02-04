@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class TopoMarcarConsulta extends StatelessWidget {
-  const TopoMarcarConsulta({Key? key}) : super(key: key);
+  const TopoMarcarConsulta({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +12,7 @@ class TopoMarcarConsulta extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -23,16 +23,16 @@ class TopoMarcarConsulta extends StatelessWidget {
         children: [
           Text(
             'Olá, João!',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           Text(
             'Bem-vindo de volta ao seu espaço de paciente.',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey[600],
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
           ),
           const SizedBox(height: 16),
           SizedBox(
