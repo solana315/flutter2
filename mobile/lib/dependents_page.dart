@@ -3,7 +3,6 @@ import 'package:flutter_application_1/models/dependent.dart';
 import 'package:flutter_application_1/pages/dependent_detail_page.dart';
 
 class DependentsPage extends StatelessWidget {
-<<<<<<< HEAD
   const DependentsPage({super.key});
 
   static final List<Dependent> mockDependents = [
@@ -25,14 +24,6 @@ class DependentsPage extends StatelessWidget {
       relation: 'Cônjuge',
       dob: DateTime(1988, 2, 24),
     ),
-=======
-  const DependentsPage({Key? key}) : super(key: key);
-
-  static final List<Dependent> mockDependents = [
-    Dependent(id: 'd1', name: 'Miguel Silva', relation: 'Filho', dob: DateTime(2014, 6, 12)),
-    Dependent(id: 'd2', name: 'Sofia Silva', relation: 'Filha', dob: DateTime(2017, 11, 3)),
-    Dependent(id: 'd3', name: 'Ana Pereira', relation: 'Cônjuge', dob: DateTime(1988, 2, 24)),
->>>>>>> c79b55e79eb14f3463c6268bbb1d4a0f249ea436
   ];
 
   @override
@@ -57,15 +48,11 @@ class DependentsPage extends StatelessWidget {
                 color: const Color(0xFFF3EDE7),
                 borderRadius: BorderRadius.circular(8),
               ),
-<<<<<<< HEAD
               child: const Icon(
                 Icons.people_outline,
                 color: Colors.black54,
                 size: 18,
               ),
-=======
-              child: const Icon(Icons.people_outline, color: Colors.black54, size: 18),
->>>>>>> c79b55e79eb14f3463c6268bbb1d4a0f249ea436
             ),
             const SizedBox(width: 12),
             const Text('Dependentes', style: TextStyle(color: Colors.black87)),
@@ -92,12 +79,8 @@ class DependentsPage extends StatelessWidget {
                   Expanded(
                     child: ListView.separated(
                       itemCount: mockDependents.length,
-<<<<<<< HEAD
                       separatorBuilder: (context, index) =>
                           const SizedBox(height: 8),
-=======
-                      separatorBuilder: (context, index) => const SizedBox(height: 8),
->>>>>>> c79b55e79eb14f3463c6268bbb1d4a0f249ea436
                       itemBuilder: (context, index) {
                         final d = mockDependents[index];
                         return DependentCard(
@@ -106,13 +89,9 @@ class DependentsPage extends StatelessWidget {
                           primaryColor: primaryGold,
                           onTap: () => Navigator.push(
                             context,
-<<<<<<< HEAD
                             MaterialPageRoute(
                               builder: (_) => DependentDetailPage(dependent: d),
                             ),
-=======
-                            MaterialPageRoute(builder: (_) => DependentDetailPage(dependent: d)),
->>>>>>> c79b55e79eb14f3463c6268bbb1d4a0f249ea436
                           ),
                         );
                       },
@@ -134,7 +113,6 @@ class DependentCard extends StatelessWidget {
   final Color? cardBg;
   final Color? primaryColor;
 
-<<<<<<< HEAD
   const DependentCard({
     super.key,
     required this.dependent,
@@ -142,9 +120,6 @@ class DependentCard extends StatelessWidget {
     this.cardBg,
     this.primaryColor,
   });
-=======
-  const DependentCard({Key? key, required this.dependent, this.onTap, this.cardBg, this.primaryColor}) : super(key: key);
->>>>>>> c79b55e79eb14f3463c6268bbb1d4a0f249ea436
 
   @override
   Widget build(BuildContext context) {
@@ -166,13 +141,9 @@ class DependentCard extends StatelessWidget {
                 backgroundColor: primaryColor ?? theme.colorScheme.primary,
                 child: Text(
                   _initials(dependent.name),
-<<<<<<< HEAD
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: Colors.white,
                   ),
-=======
-                  style: theme.textTheme.titleMedium?.copyWith(color: Colors.white),
->>>>>>> c79b55e79eb14f3463c6268bbb1d4a0f249ea436
                 ),
               ),
               const SizedBox(width: 12),
@@ -180,7 +151,6 @@ class DependentCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-<<<<<<< HEAD
                     Text(
                       dependent.name,
                       style: theme.textTheme.titleMedium?.copyWith(
@@ -192,11 +162,6 @@ class DependentCard extends StatelessWidget {
                       '${dependent.relation} • ${dependent.ageOrDob}',
                       style: theme.textTheme.bodyMedium,
                     ),
-=======
-                    Text(dependent.name, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 4),
-                    Text('${dependent.relation} • ${dependent.ageOrDob}', style: theme.textTheme.bodyMedium),
->>>>>>> c79b55e79eb14f3463c6268bbb1d4a0f249ea436
                   ],
                 ),
               ),

@@ -11,11 +11,7 @@ class DependentDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-<<<<<<< HEAD
-    // Use the same palette as menu.dart
-=======
     // Use the same palette as Menu.dart
->>>>>>> c79b55e79eb14f3463c6268bbb1d4a0f249ea436
     final bg = const Color(0xFFFAF7F4);
     final cardBg = Colors.white;
     final primaryGold = const Color(0xFFA87B05);
@@ -36,13 +32,9 @@ class DependentDetailPage extends StatelessWidget {
               padding: const EdgeInsets.all(16.0),
               child: Card(
                 color: cardBg,
-<<<<<<< HEAD
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-=======
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
->>>>>>> c79b55e79eb14f3463c6268bbb1d4a0f249ea436
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -54,13 +46,9 @@ class DependentDetailPage extends StatelessWidget {
                           backgroundColor: primaryGold,
                           child: Text(
                             _initials(dependent.name),
-<<<<<<< HEAD
                             style: textTheme.titleLarge?.copyWith(
                               color: Colors.white,
                             ),
-=======
-                            style: textTheme.titleLarge?.copyWith(color: Colors.white),
->>>>>>> c79b55e79eb14f3463c6268bbb1d4a0f249ea436
                           ),
                         ),
                       ),
@@ -69,7 +57,6 @@ class DependentDetailPage extends StatelessWidget {
                       const SizedBox(height: 8),
                       Text(dependent.relation, style: textTheme.titleMedium),
                       const SizedBox(height: 8),
-<<<<<<< HEAD
                       Text(
                         'Idade: ${dependent.ageOrDob}',
                         style: textTheme.bodyMedium,
@@ -84,13 +71,6 @@ class DependentDetailPage extends StatelessWidget {
                         'Aqui podem ir histórico clínico, contactos, documentos, etc.',
                         style: textTheme.bodyMedium,
                       ),
-=======
-                      Text('Idade: ${dependent.ageOrDob}', style: textTheme.bodyMedium),
-                      const SizedBox(height: 24),
-                      Text('Página de detalhe (placeholder).', style: textTheme.bodyLarge),
-                      const SizedBox(height: 8),
-                      Text('Aqui podem ir histórico clínico, contactos, documentos, etc.', style: textTheme.bodyMedium),
->>>>>>> c79b55e79eb14f3463c6268bbb1d4a0f249ea436
                     ],
                   ),
                 ),

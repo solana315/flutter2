@@ -4,14 +4,11 @@ import 'app/session_controller.dart';
 import 'app/session_scope.dart';
 import 'login_page.dart';
 import 'menu.dart';
+import 'marcar_consulta.dart';
 import 'planotratamento.dart';
 import 'perfil.dart';
 import 'declaracao.dart';
-<<<<<<< HEAD
 import 'pages/patients_page.dart';
-=======
-import 'minhas_consultas_page.dart';
->>>>>>> c79b55e79eb14f3463c6268bbb1d4a0f249ea436
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,7 +26,6 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-<<<<<<< HEAD
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -49,25 +45,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-=======
-	@override
-	Widget build(BuildContext context) {
-		return MaterialApp(
-			title: 'CliniMolelos',
-			debugShowCheckedModeBanner: false,
-			theme: ThemeData(
-				primarySwatch: Colors.green,
-			),
-			home: const LoginPage(),
-        routes: {
-    '/login': (context) => const LoginPage(),
-    '/menu': (context) => const Menu(),
-	'/asminhasconsultas': (context) => const MinhasConsultasPage(),
-		'/plano_tratamento': (context) => const PlanoTratamentoPage(),
-    '/perfil': (context) => Perfil(),
-    '/declaracao': (context) => Declaracao(),
-  },
-		);
-	}
-}
->>>>>>> c79b55e79eb14f3463c6268bbb1d4a0f249ea436

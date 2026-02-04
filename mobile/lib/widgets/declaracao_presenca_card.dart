@@ -15,11 +15,7 @@ class DeclaracaoPresencaCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-<<<<<<< HEAD
             color: Colors.black.withValues(alpha: 0.05),
-=======
-            color: Colors.black.withOpacity(0.05),
->>>>>>> c79b55e79eb14f3463c6268bbb1d4a0f249ea436
             blurRadius: 8,
             offset: Offset(0, 2),
           ),
@@ -33,14 +29,7 @@ class DeclaracaoPresencaCard extends StatelessWidget {
             height: 80,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-<<<<<<< HEAD
               border: Border.all(color: Color(0xFFB8A876), width: 2),
-=======
-              border: Border.all(
-                color: Color(0xFFB8A876),
-                width: 2,
-              ),
->>>>>>> c79b55e79eb14f3463c6268bbb1d4a0f249ea436
             ),
             child: Center(
               child: Text(
@@ -67,11 +56,7 @@ class DeclaracaoPresencaCard extends StatelessWidget {
           ),
           SizedBox(height: 24),
           Divider(
-<<<<<<< HEAD
             color: Color(0xFFB8A876).withValues(alpha: 0.3),
-=======
-            color: Color(0xFFB8A876).withOpacity(0.3),
->>>>>>> c79b55e79eb14f3463c6268bbb1d4a0f249ea436
             thickness: 1,
           ),
           SizedBox(height: 20),

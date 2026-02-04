@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import '../contact_page.dart';
-import 'package:flutter_application_1/pages/dependents_page.dart';
-
 import '../pages/declarations_docs_page.dart';
 
 class GridMenu extends StatelessWidget {
@@ -31,6 +29,9 @@ class GridMenu extends StatelessWidget {
           icon: Icons.medical_services_outlined,
           title: 'Planos de Tratamento',
           subtitle: 'Acompanhe etapas',
+          onTap: () {
+            Navigator.pushNamed(context, '/plano_tratamento');
+          },
         ),
         _menuCard(
           context: context,
@@ -38,14 +39,7 @@ class GridMenu extends StatelessWidget {
           title: 'Dependentes',
           subtitle: 'Gerir familiares',
           onTap: () {
-<<<<<<< HEAD
             Navigator.pushNamed(context, '/pacientes');
-=======
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const DependentsPage()),
-            );
->>>>>>> c79b55e79eb14f3463c6268bbb1d4a0f249ea436
           },
         ),
         _menuCard(
@@ -67,6 +61,9 @@ class GridMenu extends StatelessWidget {
           icon: Icons.person_outline,
           title: 'Perfil',
           subtitle: 'Dados e segurança',
+          onTap: () {
+            Navigator.pushNamed(context, '/perfil');
+          },
         ),
         _menuCard(
           context: context,
