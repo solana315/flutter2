@@ -3,6 +3,7 @@ import 'app/session_scope.dart';
 import 'widgets/app_bottom_nav.dart';
 import 'widgets/grid_menu.dart';
 import 'widgets/menu/atalhos_card.dart';
+import 'widgets/notification_bell_button.dart';
 
 class Menu extends StatefulWidget {
   const Menu({super.key});
@@ -56,10 +57,22 @@ class _MenuState extends State<Menu> {
                         ],
                       ),
                       Row(
-                        children: const [
-                          Icon(Icons.notifications_none),
-                          SizedBox(width: 12),
-                          Icon(Icons.help_outline),
+                        children: [
+                          const NotificationBellButton(),
+                          const SizedBox(width: 4),
+                          IconButton(
+                            tooltip: 'Ajuda',
+                            onPressed: () {
+                              showDialog<void>(
+                                context: context,
+                                builder: (_) => const AlertDialog(
+                                  title: Text('Ajuda'),
+                                  content: Text('Em breve.'),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.help_outline),
+                          ),
                         ],
                       ),
                     ],
