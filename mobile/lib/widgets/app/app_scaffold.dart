@@ -49,7 +49,7 @@ class AppScaffold extends StatelessWidget {
                 AppLeading.none => null,
                 AppLeading.back => null,
               },
-              iconTheme: const IconThemeData(color: AppColors.primaryGold),
+              iconTheme: const IconThemeData(color: Colors.black),
               title: Text(
                 title,
                 style: const TextStyle(

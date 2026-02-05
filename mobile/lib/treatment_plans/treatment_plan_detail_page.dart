@@ -53,6 +53,7 @@ class _TreatmentPlanDetailPageState extends State<TreatmentPlanDetailPage> {
       backgroundColor: bg,
       appBar: AppBar(
         backgroundColor: bg,
+        foregroundColor: Colors.black,
         elevation: 0,
         title: const Text('Plano de Tratamento'),
       ),

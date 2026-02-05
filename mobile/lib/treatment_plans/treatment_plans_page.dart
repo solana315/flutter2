@@ -46,6 +46,7 @@ class _TreatmentPlansPageState extends State<TreatmentPlansPage> {
       backgroundColor: bg,
       appBar: AppBar(
         backgroundColor: bg,
+        foregroundColor: Colors.black,
         elevation: 0,
         title: const Text('Tratamentos'),
       ),

@@ -320,7 +320,6 @@ class _RequestConsultaPageState extends State<RequestConsultaPage> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     final session = SessionScope.of(context);
 
     final dateLabel = _selectedDate == null
@@ -667,6 +666,7 @@ class _RequestConsultaPageState extends State<RequestConsultaPage> {
       appBar: AppBar(
         title: const Text('Marcar consulta'),
         backgroundColor: _bg,
+        foregroundColor: Colors.black,
         elevation: 0,
       ),
       body: content,

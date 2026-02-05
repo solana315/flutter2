@@ -5,7 +5,6 @@ import '../api/api_client.dart';
 import '../app/session_scope.dart';
 import '../widgets/app/app_scaffold.dart';
 import '../widgets/app/app_card.dart';
-import '../widgets/app/app_button.dart'; // Optional if used
 import 'dependent_profile_page.dart';
 
 class PatientsPage extends StatefulWidget {

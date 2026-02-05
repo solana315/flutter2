@@ -21,7 +21,10 @@ class _TestesPageState extends State<TestesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Testes')),
+      appBar: AppBar(
+        title: const Text('Testes'),
+        foregroundColor: Colors.black,
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),

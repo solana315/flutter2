@@ -116,31 +116,33 @@ class ApiFileItem {
       return DateTime.tryParse(s);
     }
 
-    final id = asInt(json['id'] ?? json['fileId'] ?? json['idFile']);
+    final id = asInt(json['id'] ?? json['id_file'] ?? json['fileId'] ?? json['idFile']);
     return ApiFileItem(
       id: id ?? 0,
-      name: (asString(json['name'] ??
-              json['filename'] ??
+      name: (asString(json['file_name'] ??
               json['originalName'] ??
-              json['fileName']) ??
+              json['filename'] ??
+              json['fileName'] ??
+              json['name']) ??
           'Documento'),
-      mimeType: asString(json['mimeType'] ?? json['mime_type'] ?? json['type']),
-      category: asString(json['category'] ?? json['categoria']),
-      createdAt: asDate(json['createdAt'] ??
-          json['created_at'] ??
+      mimeType:
+          asString(json['mime_type'] ?? json['mimeType'] ?? json['type']),
+      category: asString(json['kind'] ?? json['category'] ?? json['categoria']),
+      createdAt: asDate(json['created_at'] ??
+          json['createdAt'] ??
           json['uploadedAt'] ??
           json['uploaded_at'] ??
           json['date']),
-      sizeBytes: asInt(json['sizeBytes'] ?? json['size_bytes'] ?? json['size']),
+      sizeBytes: asInt(json['size_bytes'] ?? json['sizeBytes'] ?? json['size']),
       consultaId: asInt(
-        json['consultaId'] ??
-            json['consulta_id'] ??
+        json['consulta_id'] ??
+            json['consultaId'] ??
             json['id_consulta'] ??
             (json['consulta'] is Map ? (json['consulta'] as Map)['id'] : null),
       ),
       dependentId: asInt(
-        json['dependentId'] ??
-            json['dependent_id'] ??
+        json['dependent_id'] ??
+            json['dependentId'] ??
             json['dependenteId'] ??
             json['dependente_id'] ??
             json['id_dependente'] ??

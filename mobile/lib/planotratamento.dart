@@ -1,11 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 
 import 'app/session_scope.dart';
-import 'widgets/app/app_scaffold.dart';
 import 'widgets/app_bottom_nav.dart';
-import 'widgets/planoTratamento/filter_chips.dart';
 import 'plano_tratamento_detalhes_page.dart';
 
 class PlanoTratamentoPage extends StatefulWidget {
@@ -210,12 +206,6 @@ class _PlanoTratamentoPageState extends State<PlanoTratamentoPage>
               status.contains('final') ||
               status.contains('inativ'));
     return showActive ? isActive : !isActive;
-  }
-
-  static int? _asInt(Object? v) {
-    if (v is int) return v;
-    if (v is num) return v.toInt();
-    return int.tryParse(v?.toString() ?? '');
   }
 }
 

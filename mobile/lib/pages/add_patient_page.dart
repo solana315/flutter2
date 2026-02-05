@@ -35,7 +35,10 @@ class _AddPatientPageState extends State<AddPatientPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Adicionar paciente')),
+      appBar: AppBar(
+        title: const Text('Adicionar paciente'),
+        foregroundColor: Colors.black,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(

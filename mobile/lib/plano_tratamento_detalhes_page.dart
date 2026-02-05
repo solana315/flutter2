@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'app/session_scope.dart';
 import 'treatment_plans/models.dart';
@@ -65,7 +64,7 @@ class _PlanoTratamentoDetalhesPageState
         backgroundColor: const Color(0xFFF3EDE7),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF1F2937)),
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
@@ -122,7 +121,6 @@ class _PlanoTratamentoDetalhesPageState
             final pacienteName = userParams?.nome ?? 'Utente';
 
             final title = plan.nome ?? 'Plano';
-            final id = plan.idTratamento.toString();
             final status = plan.status; 
             final description = plan.descricao ?? '--';
             final startDate = formatDatePt(plan.dataInicio);

@@ -54,6 +54,7 @@ class _ConsultaDetailsPageState extends State<ConsultaDetailsPage> {
       backgroundColor: bg,
       appBar: AppBar(
         backgroundColor: bg,
+        foregroundColor: Colors.black,
         elevation: 0,
         title: const Text('Detalhes da Consulta'),
       ),

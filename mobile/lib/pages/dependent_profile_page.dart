@@ -7,7 +7,6 @@ import '../widgets/app/app_scaffold.dart';
 import '../widgets/app/app_card.dart';
 import '../widgets/app/app_info_row.dart';
 import '../widgets/app/app_section_title.dart';
-import '../widgets/app/app_colors.dart';
 
 class DependentProfilePage extends StatefulWidget {
   final int dependentId;
