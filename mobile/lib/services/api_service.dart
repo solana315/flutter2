@@ -6,9 +6,9 @@ class ApiService {
   // Use a getter so dotenv is read at runtime (after dotenv.load in main)
   static String get _base {
     try {
-      return dotenv.env['API_BASE_URL'] ?? 'http://10.0.2.2:4000';
+      return dotenv.env['API_BASE_URL'] ?? 'https://gestorclinica.onrender.com';
     } catch (_) {
-      return 'http://10.0.2.2:4000';
+      return 'https://gestorclinica.onrender.com';
     }
   }
 

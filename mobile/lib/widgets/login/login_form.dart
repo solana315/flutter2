@@ -58,10 +58,16 @@ class _LoginFormState extends State<LoginForm> {
       await session.loginPaciente(email: email, senha: senha);
       if (!mounted) return;
       navigator.pushReplacementNamed('/menu');
+    } on Exception catch (err) {
+      if (!mounted) return;
+      String msg = err.toString();
+      if (msg.contains('SocketException') || msg.contains('Timeout')) {
+        msg = 'Não foi possível conectar ao servidor. Tente novamente mais tarde.';
+      }
+      messenger.showSnackBar(SnackBar(content: Text('Erro: $msg')));
     } catch (err) {
       if (!mounted) return;
-      final msg = err.toString();
-      messenger.showSnackBar(SnackBar(content: Text('Erro: $msg')));
+      messenger.showSnackBar(SnackBar(content: Text('Erro inesperado: ${err.toString()}')));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
