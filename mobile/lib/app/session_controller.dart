@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../api/api.dart';
@@ -33,8 +34,21 @@ class SessionController extends ChangeNotifier {
   static Future<SessionController> bootstrap() async {
     final prefs = await SharedPreferences.getInstance();
     final tokenStore = SharedPreferencesTokenStore(prefs);
+
+    // Prefer using .env variable if available, otherwise fallback to ApiConfig
+    String? envUrl;
+    try {
+      envUrl = dotenv.env['API_BASE_URL'];
+    } catch (_) {
+      // dotenv might not be initialized if loading failed
+    }
+
+    final baseUrl = (envUrl != null && envUrl.isNotEmpty)
+        ? envUrl
+        : ApiConfig.defaultBaseUrl;
+
     final apiClient = ApiClient(
-      baseUrl: ApiConfig.defaultBaseUrl,
+      baseUrl: baseUrl,
       tokenStore: tokenStore,
     );
 

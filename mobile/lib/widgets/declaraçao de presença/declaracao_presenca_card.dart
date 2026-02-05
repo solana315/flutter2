@@ -15,7 +15,7 @@ class DeclaracaoPresencaCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: Offset(0, 2),
           ),
@@ -61,7 +61,7 @@ class DeclaracaoPresencaCard extends StatelessWidget {
           ),
           SizedBox(height: 24),
           Divider(
-            color: Color(0xFFB8A876).withOpacity(0.3),
+            color: Color(0xFFB8A876).withValues(alpha: 0.3),
             thickness: 1,
           ),
           SizedBox(height: 20),
