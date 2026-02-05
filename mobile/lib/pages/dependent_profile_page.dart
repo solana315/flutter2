@@ -4,6 +4,10 @@ import 'package:intl/intl.dart';
 import '../api/api_client.dart';
 import '../app/session_scope.dart';
 import '../widgets/app/app_scaffold.dart';
+import '../widgets/app/app_card.dart';
+import '../widgets/app/app_info_row.dart';
+import '../widgets/app/app_section_title.dart';
+import '../widgets/app/app_colors.dart';
 
 class DependentProfilePage extends StatefulWidget {
   final int dependentId;
@@ -66,19 +70,7 @@ class _DependentProfilePageState extends State<DependentProfilePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color.fromRGBO(0, 0, 0, 0.03),
-                    blurRadius: 8,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
+            AppCard(
               child: FutureBuilder<Map<String, dynamic>>(
                 future: _future,
                 builder: (context, snapshot) {
@@ -150,26 +142,38 @@ class _DependentProfilePageState extends State<DependentProfilePage> {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _SectionTitle('Informações pessoais'),
+                      const AppSectionTitle('Informações pessoais'),
                       const SizedBox(height: 10),
-                      _InfoCard(
-                        rows: [
-                          _InfoRow('Nome', _display(nome)),
-                          _InfoRow('Email', _display(email)),
-                          _InfoRow('Telefone', _display(telefone)),
-                          _InfoRow('Sexo', _display(sexo)),
-                          _InfoRow('Endereço', _display(endereco)),
-                          _InfoRow('Data nascimento', _display(dataNascimento)),
-                        ],
+                      AppCard(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          children: [
+                            AppInfoRow(label: 'Nome', value: _display(nome)),
+                            const Divider(height: 16),
+                            AppInfoRow(label: 'Email', value: _display(email)),
+                            const Divider(height: 16),
+                            AppInfoRow(label: 'Telefone', value: _display(telefone)),
+                            const Divider(height: 16),
+                            AppInfoRow(label: 'Sexo', value: _display(sexo)),
+                            const Divider(height: 16),
+                            AppInfoRow(label: 'Endereço', value: _display(endereco)),
+                            const Divider(height: 16),
+                            AppInfoRow(label: 'Data nascimento', value: _display(dataNascimento)),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 16),
-                      _SectionTitle('Documentos'),
+                      const AppSectionTitle('Documentos'),
                       const SizedBox(height: 10),
-                      _InfoCard(
-                        rows: [
-                          _InfoRow('NIF', _display(nif)),
-                          _InfoRow('Nº utente', _display(numeroUtente)),
-                        ],
+                      AppCard(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          children: [
+                            AppInfoRow(label: 'NIF', value: _display(nif)),
+                            const Divider(height: 16),
+                            AppInfoRow(label: 'Nº utente', value: _display(numeroUtente)),
+                          ],
+                        ),
                       ),
                     ],
                   );
@@ -179,88 +183,6 @@ class _DependentProfilePageState extends State<DependentProfilePage> {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _SectionTitle extends StatelessWidget {
-  final String text;
-  const _SectionTitle(this.text);
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: Theme.of(
-        context,
-      ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
-    );
-  }
-}
-
-class _InfoRow {
-  final String label;
-  final String value;
-  const _InfoRow(this.label, this.value);
-}
-
-class _InfoCard extends StatelessWidget {
-  final List<_InfoRow> rows;
-  const _InfoCard({required this.rows});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.black12),
-      ),
-      child: Column(
-        children: [
-          for (int i = 0; i < rows.length; i++) ...[
-            _KeyValueRow(label: rows[i].label, value: rows[i].value),
-            if (i != rows.length - 1) const Divider(height: 16),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _KeyValueRow extends StatelessWidget {
-  final String label;
-  final String value;
-  const _KeyValueRow({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          flex: 5,
-          child: Text(
-            label,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.black54,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          flex: 7,
-          child: Text(
-            value,
-            textAlign: TextAlign.right,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
-          ),
-        ),
-      ],
     );
   }
 }

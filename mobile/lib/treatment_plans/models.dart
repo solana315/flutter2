@@ -45,6 +45,7 @@ class PlanSummary {
   final DateTime? dataFim;
   final int? dependentId;
   final String? dependenteNome;
+  final List<AssociatedConsulta> consultas;
 
   const PlanSummary({
     required this.idTratamento,
@@ -55,6 +56,7 @@ class PlanSummary {
     required this.dataFim,
     required this.dependentId,
     required this.dependenteNome,
+    this.consultas = const [],
   });
 
   String get title {
@@ -71,6 +73,13 @@ class PlanSummary {
     final id = asInt(
       json['id_tratamento'] ?? json['idTratamento'] ?? json['id'] ?? json['planoId'],
     );
+    
+    final rawConsultas = (json['consultas'] is List) ? (json['consultas'] as List) : [];
+    final consultas = rawConsultas
+        .whereType<Map>()
+        .map((e) => AssociatedConsulta.fromJson(e.cast<String, dynamic>()))
+        .toList();
+
     return PlanSummary(
       idTratamento: id ?? 0,
       nome: asString(json['nome'] ?? json['name'] ?? json['titulo'] ?? json['title']),
@@ -80,6 +89,7 @@ class PlanSummary {
       dataFim: tryParseDate(json['data_fim'] ?? json['fim'] ?? json['end_date']),
       dependentId: asInt(json['dependent_id'] ?? json['dependente_id'] ?? json['dependentId']),
       dependenteNome: asString(json['dependente_nome'] ?? json['dependent_name']),
+      consultas: consultas,
     );
   }
 }
@@ -89,12 +99,14 @@ class AssociatedConsulta {
   final DateTime? dateTime;
   final String? medicoNome;
   final String status;
+  final String? razao;
 
   const AssociatedConsulta({
     required this.id,
     required this.dateTime,
     required this.medicoNome,
     required this.status,
+    this.razao,
   });
 
   factory AssociatedConsulta.fromJson(Map<String, dynamic> json) {
@@ -117,8 +129,9 @@ class AssociatedConsulta {
     return AssociatedConsulta(
       id: asInt(json['id_consulta'] ?? json['consulta_id'] ?? json['id'] ?? json['idConsulta']),
       dateTime: merged,
-      medicoNome: asString(json['medico_nome'] ?? json['doctor_name']),
+      medicoNome: asString(json['medico_nome'] ?? json['doctor_name'] ?? json['profissional'] ?? json['medico']),
       status: normalizeStatus(asString(json['status'] ?? json['estado'])),
+      razao: asString(json['razao_consulta'] ?? json['razao'] ?? json['reason']),
     );
   }
 }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'app/session_scope.dart';
 import 'widgets/app_bottom_nav.dart';
 import 'widgets/grid_menu.dart';
-import 'widgets/menu/atalhos_card.dart';
 import 'widgets/notification_bell_button.dart';
 
 class Menu extends StatefulWidget {
@@ -142,24 +141,7 @@ class _MenuState extends State<Menu> {
                   // GRID MENU
                   const GridMenu(),
 
-                  const SizedBox(height: 18),
 
-                  // ATALHOS RÁPIDOS
-                  const Text(
-                    'Atalhos Rápidos',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 8),
-
-                  //CARD
-                  AtalhosCard(
-                    onFirstTap: () {
-                      Navigator.pushNamed(context, '/asminhasconsultas');
-                    },
-                    onSecondTap: () {
-                      // ação futura
-                    },
-                  ),
 
                   const SizedBox(height: 80),
                 ],

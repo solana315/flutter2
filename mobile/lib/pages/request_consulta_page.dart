@@ -538,49 +538,13 @@ class _RequestConsultaPageState extends State<RequestConsultaPage> {
 
                         const SizedBox(height: 12),
 
-                        pair(
-                          _Labeled(
-                            label: 'Duração',
-                            child: DropdownButtonFormField<int>(
-                              initialValue: _selectedDurationMinutes,
-                              items: const [
-                                DropdownMenuItem(
-                                  value: 15,
-                                  child: Text('15 min'),
-                                ),
-                                DropdownMenuItem(
-                                  value: 30,
-                                  child: Text('30 min'),
-                                ),
-                                DropdownMenuItem(
-                                  value: 45,
-                                  child: Text('45 min'),
-                                ),
-                                DropdownMenuItem(
-                                  value: 60,
-                                  child: Text('60 min'),
-                                ),
-                              ],
-                              onChanged: _submitting
-                                  ? null
-                                  : (v) {
-                                      if (v == null) return;
-                                      setState(() {
-                                        _selectedDurationMinutes = v;
-                                        _error = null;
-                                      });
-                                    },
-                              decoration: _fieldDecoration(hint: '30 min'),
-                            ),
-                          ),
-                          _Labeled(
-                            label: 'Tipo de marcação',
-                            child: _SelectField(
-                              enabled: false,
-                              value: 'Vaga',
-                              onTap: null,
-                              decoration: _fieldDecoration(hint: ''),
-                            ),
+                        _Labeled(
+                          label: 'Tipo de marcação',
+                          child: _SelectField(
+                            enabled: false,
+                            value: 'Vaga',
+                            onTap: null,
+                            decoration: _fieldDecoration(hint: ''),
                           ),
                         ),
 
@@ -652,6 +616,7 @@ class _RequestConsultaPageState extends State<RequestConsultaPage> {
                             ? null
                             : () => Navigator.of(context).pop(false),
                         style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFFA87B05),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -666,7 +631,7 @@ class _RequestConsultaPageState extends State<RequestConsultaPage> {
                       child: FilledButton(
                         onPressed: _submitting ? null : _submit,
                         style: FilledButton.styleFrom(
-                          backgroundColor: scheme.primary,
+                          backgroundColor: const Color(0xFFA87B05),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -678,6 +643,7 @@ class _RequestConsultaPageState extends State<RequestConsultaPage> {
                                 height: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
+                                  color: Colors.white,
                                 ),
                               )
                             : const Text('Enviar pedido'),

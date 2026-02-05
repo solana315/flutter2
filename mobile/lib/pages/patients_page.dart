@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import '../api/api_client.dart';
 import '../app/session_scope.dart';
 import '../widgets/app/app_scaffold.dart';
+import '../widgets/app/app_card.dart';
+import '../widgets/app/app_button.dart'; // Optional if used
 import 'dependent_profile_page.dart';
 
 class PatientsPage extends StatefulWidget {
@@ -264,19 +266,7 @@ class _DependentsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(
-            color: Color.fromRGBO(0, 0, 0, 0.03),
-            blurRadius: 10,
-            offset: Offset(0, 6),
-          ),
-        ],
-      ),
+    return AppCard(
       child: LayoutBuilder(
         builder: (context, constraints) {
           final isWide = constraints.maxWidth >= 720;
@@ -336,6 +326,8 @@ class _DependentsTable extends StatelessWidget {
                           onView: onView,
                         ),
                         style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFFA87B05),
+                          side: const BorderSide(color: Color(0xFFA87B05)),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -418,6 +410,8 @@ class _DependentRow extends StatelessWidget {
           onPressed: () =>
               _onTapViewDependent(context, item: item, onView: onView),
           style: OutlinedButton.styleFrom(
+            foregroundColor: const Color(0xFFA87B05),
+            side: const BorderSide(color: Color(0xFFA87B05)),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
             ),
@@ -460,23 +454,8 @@ class _EmptyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: const [
-            BoxShadow(
-              color: Color.fromRGBO(0, 0, 0, 0.03),
-              blurRadius: 10,
-              offset: Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Text(text, textAlign: TextAlign.center),
-      ),
+    return AppCard(
+      child: Center(child: Text(text, textAlign: TextAlign.center)),
     );
   }
 }

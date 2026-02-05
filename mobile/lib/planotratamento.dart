@@ -6,6 +6,7 @@ import 'app/session_scope.dart';
 import 'widgets/app/app_scaffold.dart';
 import 'widgets/app_bottom_nav.dart';
 import 'widgets/planoTratamento/filter_chips.dart';
+import 'plano_tratamento_detalhes_page.dart';
 
 class PlanoTratamentoPage extends StatefulWidget {
   const PlanoTratamentoPage({super.key});
@@ -14,19 +15,30 @@ class PlanoTratamentoPage extends StatefulWidget {
   State<PlanoTratamentoPage> createState() => _PlanoTratamentoPageState();
 }
 
-class _PlanoTratamentoPageState extends State<PlanoTratamentoPage> {
+class _PlanoTratamentoPageState extends State<PlanoTratamentoPage>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
   final bg = const Color(0xFFFAF7F4);
   final cardBg = Colors.white;
   final primaryGold = const Color(0xFFA87B05);
-  bool showActive = true;
   Future<Map<String, dynamic>>? _future;
-  Map<String, dynamic>? _selected;
-  Future<Map<String, dynamic>>? _detailsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _future ??= _load();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   Future<Map<String, dynamic>> _load() async {
@@ -38,93 +50,140 @@ class _PlanoTratamentoPageState extends State<PlanoTratamentoPage> {
 
   @override
   Widget build(BuildContext context) {
-    return AppScaffold(
-      title: 'Planos de Tratamento',
-      bottomNavigationBar: const AppBottomNav(selectedIndex: 2),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 360),
-          child: FutureBuilder<Map<String, dynamic>>(
-            future: _future,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState != ConnectionState.done) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (snapshot.hasError) {
-                return _ErrorView(
-                  error: snapshot.error,
-                  onRetry: () => setState(() => _future = _load()),
-                );
-              }
-
-              final json = snapshot.data ?? <String, dynamic>{};
-              final planos = _extractList(json);
-              final filtered = planos
-                  .where((p) => _matchesFilter(p, showActive))
-                  .toList();
-
-              return SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 16,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const Text(
-                      'Registo Clínico\nAcompanhe os seus planos, sessões e progresso',
-                      style: TextStyle(color: Colors.black54),
+    return Scaffold(
+      backgroundColor: bg,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    'Planos de Tratamento',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
                     ),
-                    const SizedBox(height: 12),
-                    FilterChips(
-                      showActive: showActive,
-                      onChanged: (v) => setState(() => showActive = v),
-                      primaryGold: primaryGold,
-                    ),
-                    const SizedBox(height: 12),
-                    if (filtered.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.all(24),
-                        child: Center(child: Text('Sem planos.')),
-                      )
-                    else
-                      ...filtered.map(
-                        (p) => _PlanCard(
-                          plan: p,
-                          primaryGold: primaryGold,
-                          selected: identical(p, _selected),
-                          onTap: () => _selectPlan(p),
-                        ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Veja os planos ativos e o histórico.',
+                    style: TextStyle(color: Colors.black54),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(color: Colors.black12, width: 1),
                       ),
-                    const SizedBox(height: 18),
-                    _PlanDetails(
-                      primaryGold: primaryGold,
-                      detailsFuture: _detailsFuture,
                     ),
-                    const SizedBox(height: 18),
-                  ],
-                ),
-              );
-            },
-          ),
+                    child: TabBar(
+                      controller: _tabController,
+                      labelColor: primaryGold,
+                      unselectedLabelColor: Colors.black54,
+                      indicatorColor: primaryGold,
+                      indicatorWeight: 3,
+                      labelStyle: const TextStyle(fontWeight: FontWeight.w600),
+                      tabs: const [
+                        Tab(text: 'Ativos'),
+                        Tab(text: 'Histórico'),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: Row(
+                      children: const [
+                        SizedBox(width: 12),
+                        Icon(Icons.search, color: Colors.grey),
+                        SizedBox(width: 12),
+                        Text(
+                          'Pesquisar planos...',
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+            Expanded(
+              child: FutureBuilder<Map<String, dynamic>>(
+                future: _future,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState != ConnectionState.done) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return _ErrorView(
+                      error: snapshot.error,
+                      onRetry: () => setState(() => _future = _load()),
+                    );
+                  }
+
+                  final json = snapshot.data ?? <String, dynamic>{};
+                  final planos = _extractList(json);
+                  final activeList =
+                      planos.where((p) => _matchesFilter(p, true)).toList();
+                  final historyList =
+                      planos.where((p) => _matchesFilter(p, false)).toList();
+
+                  return TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildList(activeList),
+                      _buildList(historyList),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
+      bottomNavigationBar: const AppBottomNav(selectedIndex: 2),
     );
   }
 
-  Future<void> _selectPlan(Map<String, dynamic> plan) async {
-    setState(() {
-      _selected = plan;
-      _detailsFuture = _loadDetails(plan);
-    });
-  }
-
-  Future<Map<String, dynamic>>? _loadDetails(Map<String, dynamic> plan) {
-    final session = SessionScope.of(context);
-    final userId = session.userId;
-    final id = _asInt(plan['id'] ?? plan['id_tratamento'] ?? plan['planoId']);
-    if (userId == null || id == null) return null;
-    return session.patientApi.getPlano(userId, id);
+  Widget _buildList(List<Map<String, dynamic>> planos) {
+    if (planos.isEmpty) {
+      return const Center(
+        child: Text(
+          'Sem planos para apresentar.',
+          style: TextStyle(color: Colors.black54),
+        ),
+      );
+    }
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      itemCount: planos.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        final p = planos[index];
+        return _PlanCard(
+          plan: p,
+          primaryGold: primaryGold,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => PlanoTratamentoDetalhesPage(plan: p),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   static List<Map<String, dynamic>> _extractList(Map<String, dynamic> json) {
@@ -163,13 +222,11 @@ class _PlanoTratamentoPageState extends State<PlanoTratamentoPage> {
 class _PlanCard extends StatelessWidget {
   final Map<String, dynamic> plan;
   final Color primaryGold;
-  final bool selected;
   final VoidCallback onTap;
 
   const _PlanCard({
     required this.plan,
     required this.primaryGold,
-    required this.selected,
     required this.onTap,
   });
 
@@ -181,130 +238,111 @@ class _PlanCard extends StatelessWidget {
         (plan['doctor'] ?? plan['medico'] ?? plan['responsavel'] ?? '')
             .toString();
     final status = (plan['status'] ?? plan['estado'] ?? '').toString();
-    final sessions = (plan['sessoes'] ?? plan['sessions'] ?? '').toString();
+    // Assuming status logic for different colors
+    final isPending = status.toLowerCase().contains('pen');
+    final isConfirmed =
+        status.toLowerCase().contains('con') ||
+        status.toLowerCase().contains('ati');
+
+    final statusBg = isPending
+        ? const Color(0xFFFFF8E1)
+        : (isConfirmed ? const Color(0xFFE8F5E9) : Colors.grey.shade50);
+    final statusText = isPending
+        ? const Color(0xFFF57C00)
+        : (isConfirmed ? const Color(0xFF2E7D32) : Colors.grey.shade700);
+    final statusBorder = isPending
+        ? const Color(0xFFFFE0B2)
+        : (isConfirmed ? const Color(0xFFA5D6A7) : Colors.grey.shade200);
+
+    // Info string similar to date/time or sessions
+    final info = (plan['sessoes'] ?? plan['sessions'] ?? '').toString();
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: selected
-              ? primaryGold.withAlpha((0.30 * 255).round())
-              : Colors.transparent,
-        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color.fromRGBO(0, 0, 0, 0.05),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Material(
-        color: Colors.white,
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(12),
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 46,
-                  height: 46,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF3EDE7),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(Icons.folder_open_outlined, color: primaryGold),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
                         title,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        [
-                          if (doctor.isNotEmpty) doctor,
-                          if (sessions.isNotEmpty) sessions,
-                          if (status.isNotEmpty) status,
-                        ].join(' • '),
-                        style: const TextStyle(color: Colors.black54),
+                    ),
+                    if (status.isNotEmpty) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: statusBg,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: statusBorder),
+                        ),
+                        child: Text(
+                          status,
+                          style: TextStyle(
+                            color: statusText,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ],
-                  ),
+                    const SizedBox(width: 8),
+                    const Icon(
+                      Icons.chevron_right,
+                      color: Colors.black26,
+                      size: 20,
+                    ),
+                  ],
                 ),
-                const Icon(Icons.chevron_right_outlined, color: Colors.black38),
+                if (info.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    info,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+                if (doctor.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    'Profissional: $doctor',
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                  ),
+                ],
               ],
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _PlanDetails extends StatelessWidget {
-  final Color primaryGold;
-  final Future<Map<String, dynamic>>? detailsFuture;
-
-  const _PlanDetails({required this.primaryGold, required this.detailsFuture});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0x0F000000),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Text(
-            'Detalhes do Plano',
-            style: TextStyle(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 8),
-          if (detailsFuture == null)
-            const Text(
-              'Selecione um plano para ver detalhes.',
-              style: TextStyle(color: Colors.black54),
-            )
-          else
-            FutureBuilder<Map<String, dynamic>>(
-              future: detailsFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState != ConnectionState.done) {
-                  return const Padding(
-                    padding: EdgeInsets.all(8),
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                }
-                if (snapshot.hasError) {
-                  return Text(
-                    'Erro: ${snapshot.error}',
-                    style: const TextStyle(color: Colors.redAccent),
-                  );
-                }
-                final json = snapshot.data ?? <String, dynamic>{};
-                return Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF7F4F2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(const JsonEncoder.withIndent('  ').convert(json)),
-                );
-              },
-            ),
-        ],
       ),
     );
   }

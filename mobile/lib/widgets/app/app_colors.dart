@@ -8,4 +8,5 @@ class AppColors {
 
   static const textPrimary = Color(0xFF111111);
   static const textSecondary = Color(0xFF616161);
+  static const error = Colors.red;
 }

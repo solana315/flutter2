@@ -165,7 +165,21 @@ class DependentCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, size: 28, color: Colors.black54),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: primaryColor ?? const Color(0xFFA87B05)),
+                ),
+                child: Text(
+                  'Ver',
+                  style: TextStyle(
+                    color: primaryColor ?? const Color(0xFFA87B05),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
             ],
           ),
         ),

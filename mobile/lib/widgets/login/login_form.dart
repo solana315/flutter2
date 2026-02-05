@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../app/session_scope.dart';
-import 'login_fields.dart';
-import 'buttons.dart';
-
+import '../app/app_card.dart';
+import '../app/app_text_field.dart';
+import '../app/app_button.dart';
+import '../app/app_section_title.dart';
 
 //lógica de código do login
 
@@ -79,43 +80,51 @@ class _LoginFormState extends State<LoginForm> {
 //layout iniciar sessão
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
+    return AppCard(
       padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: widget.cardBg,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: const Color.fromRGBO(0, 0, 0, 0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      borderRadius: 14,
+      color: widget.cardBg,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'Iniciar sessão',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
+          const AppSectionTitle('Iniciar sessão'),
+          const SizedBox(height: 12),
+
+          AppTextField(
+            controller: _emailController,
+            hintText: 'Email',
+            prefixIcon: Icons.email_outlined,
+            keyboardType: TextInputType.emailAddress,
+            fillColor: widget.bg,
           ),
           const SizedBox(height: 12),
 
-          EmailField(controller: _emailController, backgroundColor: widget.bg),
-          const SizedBox(height: 12),
-
-          PasswordField(controller: _passwordController, backgroundColor: widget.bg),
+          AppTextField(
+            controller: _passwordController,
+            hintText: 'Palavra-passe',
+            prefixIcon: Icons.lock_outline,
+            obscureText: true,
+            fillColor: widget.bg,
+          ),
           const SizedBox(height: 16),
 
-          AuthActions(
+          AppButton(
+            label: 'Entrar',
             isLoading: _isLoading,
-            onLoginPressed: _handleLogin,
-            loginColor: widget.loginColor,
-            recoverColor: widget.recoverColor,
+            onPressed: _handleLogin,
+            backgroundColor: widget.loginColor,
+          ),
+          const SizedBox(height: 12),
+
+          AppButton(
+            label: 'Recuperar Palavra-passe',
+            onPressed: () {
+               ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Recuperar Palavra-passe')),
+              );
+            },
+            backgroundColor: widget.recoverColor,
+            foregroundColor: Colors.black87,
           ),
         ],
       ),

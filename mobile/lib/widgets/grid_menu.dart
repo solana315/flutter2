@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../contact_page.dart';
 import '../pages/declarations_docs_page.dart';
+import 'app/app_card.dart';
 
 class GridMenu extends StatelessWidget {
   const GridMenu({super.key});
@@ -89,54 +90,41 @@ Widget _menuCard({
   required String subtitle,
   VoidCallback? onTap,
 }) {
-  return InkWell(
+  return AppCard(
     onTap: onTap,
-    borderRadius: BorderRadius.circular(14),
-    child: Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: const Color.fromRGBO(0, 0, 0, 0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+    borderRadius: 14,
+    padding: const EdgeInsets.all(10),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: const Color(0xFFF3EDE7),
+            borderRadius: BorderRadius.circular(10),
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF3EDE7),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: Colors.black54, size: 18),
+          child: Icon(icon, color: Colors.black54, size: 18),
+        ),
+        const SizedBox(height: 8),
+        Flexible(
+          child: Text(
+            title,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 8),
-          Flexible(
-            child: Text(
-              title,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
+        ),
+        const SizedBox(height: 6),
+        Flexible(
+          child: Text(
+            subtitle,
+            style: const TextStyle(fontSize: 12, color: Colors.black54),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 6),
-          Flexible(
-            child: Text(
-              subtitle,
-              style: const TextStyle(fontSize: 12, color: Colors.black54),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     ),
   );
 }

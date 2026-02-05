@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'widgets/app/app_colors.dart';
 import 'widgets/app/app_scaffold.dart';
+import 'widgets/app/app_card.dart';
+
 /// Simplified contact page: shows only clinic information.
 class ContactPage extends StatelessWidget {
   const ContactPage({super.key});
@@ -23,18 +25,9 @@ class ContactPage extends StatelessWidget {
           constraints: const BoxConstraints(maxWidth: 720),
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppColors.beige,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
+            child: AppCard(
+              borderRadius: 16,
+              color: AppColors.beige,
               padding: const EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

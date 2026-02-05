@@ -115,24 +115,37 @@ class _MinhasConsultasPageState extends State<MinhasConsultasPage> with SingleTi
 
               Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
-                child: Column(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Declarações', style: TextStyle(fontWeight: FontWeight.w600)),
-                        Icon(Icons.insert_drive_file_outlined, color: Colors.black54),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    TabBar(
-                      controller: _tabController,
-                      labelColor: Colors.black,
-                      indicator: BoxDecoration(color: const Color(0xFFF3EDE7), borderRadius: BorderRadius.circular(20)),
-                      unselectedLabelColor: Colors.black54,
-                      tabs: const [Tab(text: 'Futuras'), Tab(text: 'Passadas')],
-                    ),
+                    const Text('Declarações',
+                        style: TextStyle(fontWeight: FontWeight.w600)),
+                    Icon(Icons.insert_drive_file_outlined,
+                        color: Colors.black54),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              Container(
+                decoration: const BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(color: Colors.black12, width: 1),
+                  ),
+                ),
+                child: TabBar(
+                  controller: _tabController,
+                  labelColor: const Color(0xFFA87B05),
+                  unselectedLabelColor: Colors.black54,
+                  indicatorColor: const Color(0xFFA87B05),
+                  indicatorWeight: 3,
+                  labelStyle: const TextStyle(fontWeight: FontWeight.w600),
+                  tabs: const [
+                    Tab(text: 'Futuras'),
+                    Tab(text: 'Passadas'),
                   ],
                 ),
               ),

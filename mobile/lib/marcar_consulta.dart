@@ -126,11 +126,23 @@ class _MarcarConsultaState extends State<MarcarConsulta> {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        const TabBar(
-                          tabs: [
-                            Tab(text: 'Futuras'),
-                            Tab(text: 'Passadas'),
-                          ],
+                        Container(
+                          decoration: const BoxDecoration(
+                            border: Border(
+                              bottom: BorderSide(color: Colors.black12, width: 1),
+                            ),
+                          ),
+                          child: TabBar(
+                            labelColor: primaryGold,
+                            unselectedLabelColor: Colors.black54,
+                            indicatorColor: primaryGold,
+                            indicatorWeight: 3,
+                            labelStyle: const TextStyle(fontWeight: FontWeight.w600),
+                            tabs: const [
+                              Tab(text: 'Futuras'),
+                              Tab(text: 'Passadas'),
+                            ],
+                          ),
                         ),
                       ],
                     ),
