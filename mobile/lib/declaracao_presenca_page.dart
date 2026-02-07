@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'widgets/declaracao/declaracao_bottom_nav.dart';
+
 class DeclaracaoPresencaPage extends StatefulWidget {
   const DeclaracaoPresencaPage({super.key});
 
@@ -38,28 +40,9 @@ class _DeclaracaoPresencaPageState extends State<DeclaracaoPresencaPage> {
           ),
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
+      bottomNavigationBar: DeclaracaoBottomNav(
         currentIndex: _selectedIndex,
         onTap: _onNavItemTapped,
-        type: BottomNavigationBarType.fixed,
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Início',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
-            label: 'Consultas',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.description),
-            label: 'Planos',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.check_circle_outline),
-            label: 'Declarações',
-          ),
-        ],
       ),
     );
   }

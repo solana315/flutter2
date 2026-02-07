@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../api/api_client.dart';
 import '../app/session_scope.dart';
 import '../widgets/app/app_scaffold.dart';
-import '../widgets/app/app_card.dart';
+import '../widgets/app/app_error_view.dart';
+import '../widgets/patients/dependents_card.dart';
+import '../widgets/patients/empty_card.dart';
+import '../utils/app_formatters.dart';
 import 'dependent_profile_page.dart';
 
 class PatientsPage extends StatefulWidget {
@@ -67,7 +69,7 @@ class _PatientsPageState extends State<PatientsPage> {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              return _ErrorView(
+              return AppErrorView(
                 error: snapshot.error,
                 onRetry: () => setState(() {
                   _handledAuthError = false;
@@ -86,11 +88,10 @@ class _PatientsPageState extends State<PatientsPage> {
                   'Os seus dependentes associados',
                   style: TextStyle(color: Colors.black54),
                 ),
-                const SizedBox(height: 14),
                 if (list.isEmpty)
-                  _EmptyCard(text: 'Sem dependentes.')
+                  const EmptyCard(text: 'Sem dependentes.')
                 else
-                  _DependentsCard(
+                  DependentsCard(
                     items: list,
                     onView: (item) => _openDependentProfile(item),
                   ),
@@ -113,7 +114,7 @@ class _PatientsPageState extends State<PatientsPage> {
       return;
     }
 
-    final nome = _firstString(item, ['nome', 'name', 'paciente_nome']);
+    final nome = firstString(item, ['nome', 'name', 'paciente_nome']);
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => DependentProfilePage(
@@ -207,274 +208,8 @@ int? _dependentId(Map<String, dynamic> item) {
   );
 }
 
-void _onTapViewDependent(
-  BuildContext context, {
-  required Map<String, dynamic> item,
-  required void Function(Map<String, dynamic> item) onView,
-}) {
-  final id = _dependentId(item);
-  if (id == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Não foi possível abrir: ID do dependente em falta.'),
-      ),
-    );
-    return;
-  }
-  onView(item);
-}
-
 int? _asInt(Object? v) {
   if (v is int) return v;
   if (v is num) return v.toInt();
   return int.tryParse(v?.toString() ?? '');
-}
-
-class _ErrorView extends StatelessWidget {
-  final Object? error;
-  final VoidCallback onRetry;
-
-  const _ErrorView({required this.error, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Erro ao carregar: ${error ?? 'desconhecido'}'),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: onRetry,
-              child: const Text('Tentar novamente'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _DependentsCard extends StatelessWidget {
-  final List<Map<String, dynamic>> items;
-  final void Function(Map<String, dynamic> item) onView;
-
-  const _DependentsCard({required this.items, required this.onView});
-
-  @override
-  Widget build(BuildContext context) {
-    return AppCard(
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final isWide = constraints.maxWidth >= 720;
-          if (isWide) {
-            return _DependentsTable(items: items, onView: onView);
-          }
-          return _DependentsMobileList(items: items, onView: onView);
-        },
-      ),
-    );
-  }
-}
-
-class _DependentsTable extends StatelessWidget {
-  final List<Map<String, dynamic>> items;
-  final void Function(Map<String, dynamic> item) onView;
-  const _DependentsTable({required this.items, required this.onView});
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: DataTable(
-        columns: const [
-          DataColumn(label: Text('Nome')),
-          DataColumn(label: Text('Data nascimento')),
-          DataColumn(label: Text('Sexo')),
-          DataColumn(label: Text('Ações')),
-        ],
-        rows: items
-            .map((item) {
-              final nome =
-                  _firstString(item, ['nome', 'name', 'paciente_nome']) ??
-                  'Dependente';
-              final dataNasc = _formatDate(
-                _firstString(item, [
-                  'data_nascimento',
-                  'dataNascimento',
-                  'birth_date',
-                  'dob',
-                ]),
-              );
-              final sexo = _firstString(item, ['sexo', 'gender']);
-
-              return DataRow(
-                cells: [
-                  DataCell(Text(nome)),
-                  DataCell(Text(_display(dataNasc))),
-                  DataCell(Text(_display(sexo))),
-                  DataCell(
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: OutlinedButton(
-                        onPressed: () => _onTapViewDependent(
-                          context,
-                          item: item,
-                          onView: onView,
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFFA87B05),
-                          side: const BorderSide(color: Color(0xFFA87B05)),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: const Text('Ver'),
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            })
-            .toList(growable: false),
-      ),
-    );
-  }
-}
-
-class _DependentsMobileList extends StatelessWidget {
-  final List<Map<String, dynamic>> items;
-  final void Function(Map<String, dynamic> item) onView;
-  const _DependentsMobileList({required this.items, required this.onView});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        for (int i = 0; i < items.length; i++) ...[
-          if (i > 0) const Divider(height: 18),
-          _DependentRow(item: items[i], onView: onView),
-        ],
-      ],
-    );
-  }
-}
-
-class _DependentRow extends StatelessWidget {
-  final Map<String, dynamic> item;
-  final void Function(Map<String, dynamic> item) onView;
-  const _DependentRow({required this.item, required this.onView});
-
-  @override
-  Widget build(BuildContext context) {
-    final nome =
-        _firstString(item, ['nome', 'name', 'paciente_nome']) ?? 'Dependente';
-    final dataNasc = _formatDate(
-      _firstString(item, [
-        'data_nascimento',
-        'dataNascimento',
-        'birth_date',
-        'dob',
-      ]),
-    );
-    final sexo = _firstString(item, ['sexo', 'gender']);
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(nome, style: const TextStyle(fontWeight: FontWeight.w700)),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 16,
-                runSpacing: 6,
-                children: [
-                  _MiniField(
-                    label: 'Data nascimento',
-                    value: _display(dataNasc),
-                  ),
-                  _MiniField(label: 'Sexo', value: _display(sexo)),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 12),
-        OutlinedButton(
-          onPressed: () =>
-              _onTapViewDependent(context, item: item, onView: onView),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: const Color(0xFFA87B05),
-            side: const BorderSide(color: Color(0xFFA87B05)),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-          child: const Text('Ver'),
-        ),
-      ],
-    );
-  }
-}
-
-class _MiniField extends StatelessWidget {
-  final String label;
-  final String value;
-  const _MiniField({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(minWidth: 120),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 12, color: Colors.black54),
-          ),
-          const SizedBox(height: 2),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
-        ],
-      ),
-    );
-  }
-}
-
-class _EmptyCard extends StatelessWidget {
-  final String text;
-
-  const _EmptyCard({required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return AppCard(
-      child: Center(child: Text(text, textAlign: TextAlign.center)),
-    );
-  }
-}
-
-String _display(String? v) => (v == null || v.trim().isEmpty) ? '—' : v.trim();
-
-String? _firstString(Map<String, dynamic> m, List<String> keys) {
-  for (final k in keys) {
-    final v = m[k];
-    if (v == null) continue;
-    final s = v.toString().trim();
-    if (s.isNotEmpty) return s;
-  }
-  return null;
-}
-
-String? _formatDate(String? raw) {
-  if (raw == null || raw.trim().isEmpty) return null;
-  final s = raw.trim();
-  final dt = DateTime.tryParse(s);
-  if (dt == null) return s;
-  return DateFormat('yyyy-MM-dd').format(dt);
 }

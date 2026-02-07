@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'widgets/app/app_error_view.dart';
 import 'widgets/app_bottom_nav.dart';
 import 'app/session_scope.dart';
 
@@ -39,7 +40,7 @@ class _MarcarConsultaState extends State<MarcarConsulta> {
               }
 
               if (snapshot.hasError) {
-                return _ErrorView(
+                return AppErrorView(
                   error: snapshot.error,
                   onRetry: () => setState(() {
                     _future = _load();
@@ -643,31 +644,4 @@ DateTime? _consultaDateTime(Map<String, dynamic> consulta) {
   }
 
   return dt;
-}
-
-class _ErrorView extends StatelessWidget {
-  final Object? error;
-  final VoidCallback onRetry;
-
-  const _ErrorView({required this.error, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Erro ao carregar: ${error ?? 'desconhecido'}'),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: onRetry,
-              child: const Text('Tentar novamente'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

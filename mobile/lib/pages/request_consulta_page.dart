@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../api/api_client.dart';
 import '../app/session_scope.dart';
+import '../widgets/request_consulta/labeled_field.dart';
+import '../widgets/request_consulta/select_field.dart';
+import '../widgets/request_consulta/field_label.dart';
+import '../widgets/request_consulta/request_consulta_card.dart';
+import '../utils/app_formatters.dart';
 
 class RequestConsultaPage extends StatefulWidget {
   final bool embedded;
@@ -147,13 +152,7 @@ class _RequestConsultaPageState extends State<RequestConsultaPage> {
     return !at.isBefore(DateTime.now().add(_minAdvance));
   }
 
-  String _formatDate(DateTime d) {
-    return '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-  }
 
-  String _formatTime(TimeOfDay t) {
-    return '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
-  }
 
   Future<void> _pickDate() async {
     final now = DateTime.now();
@@ -264,8 +263,8 @@ class _RequestConsultaPageState extends State<RequestConsultaPage> {
     }
 
     final payload = <String, dynamic>{
-      'data_consulta': _formatDate(d),
-      'hora': _formatTime(t),
+      'data_consulta': formatDateTime(d),
+      'hora': formatTimeOfDay(t),
     };
 
     final reason = _reasonController.text.trim();
@@ -324,10 +323,10 @@ class _RequestConsultaPageState extends State<RequestConsultaPage> {
 
     final dateLabel = _selectedDate == null
         ? 'Selecionar'
-        : _formatDate(_selectedDate!);
+        : formatDateTime(_selectedDate!);
     final timeLabel = _selectedTime == null
         ? 'Selecionar'
-        : _formatTime(_selectedTime!);
+        : formatTimeOfDay(_selectedTime!);
 
     final pacienteLabel = session.user?.nome.trim().isNotEmpty == true
         ? session.user!.nome
@@ -339,7 +338,7 @@ class _RequestConsultaPageState extends State<RequestConsultaPage> {
         controller: widget.scrollController,
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         children: [
-          _Card(
+          RequestConsultaCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -379,7 +378,7 @@ class _RequestConsultaPageState extends State<RequestConsultaPage> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         pair(
-                          _Labeled(
+                          LabeledField(
                             label: 'Paciente',
                             child: FutureBuilder<List<_DependentOption>>(
                               future: _dependentsFuture,
@@ -415,7 +414,7 @@ class _RequestConsultaPageState extends State<RequestConsultaPage> {
                               },
                             ),
                           ),
-                          _Labeled(
+                          LabeledField(
                             label: 'Tratamentos (opcional)',
                             child: FutureBuilder<List<_PlanOption>>(
                               future: _plansFuture,
@@ -469,9 +468,9 @@ class _RequestConsultaPageState extends State<RequestConsultaPage> {
                         const SizedBox(height: 12),
 
                         pair(
-                          _Labeled(
+                          LabeledField(
                             label: 'Profissional',
-                            child: _SelectField(
+                            child: SelectField(
                               enabled: !_submitting,
                               value: _selectedDoctorId == null
                                   ? 'Selecione'
@@ -480,9 +479,9 @@ class _RequestConsultaPageState extends State<RequestConsultaPage> {
                               decoration: _fieldDecoration(hint: 'Selecione'),
                             ),
                           ),
-                          _Labeled(
+                          LabeledField(
                             label: 'Especialidade',
-                            child: _SelectField(
+                            child: SelectField(
                               enabled: false,
                               value: 'Clínica Geral',
                               onTap: null,
@@ -494,9 +493,9 @@ class _RequestConsultaPageState extends State<RequestConsultaPage> {
                         const SizedBox(height: 12),
 
                         pair(
-                          _Labeled(
+                          LabeledField(
                             label: 'Data',
-                            child: _SelectField(
+                            child: SelectField(
                               enabled: !_submitting,
                               value: dateLabel,
                               onTap: _pickDate,
@@ -506,12 +505,12 @@ class _RequestConsultaPageState extends State<RequestConsultaPage> {
                               ),
                             ),
                           ),
-                          _Labeled(
+                          LabeledField(
                             label: 'Hora',
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                _SelectField(
+                                SelectField(
                                   enabled:
                                       !_submitting && _selectedDate != null,
                                   value: timeLabel,
@@ -537,9 +536,9 @@ class _RequestConsultaPageState extends State<RequestConsultaPage> {
 
                         const SizedBox(height: 12),
 
-                        _Labeled(
+                        LabeledField(
                           label: 'Tipo de marcação',
-                          child: _SelectField(
+                          child: SelectField(
                             enabled: false,
                             value: 'Vaga',
                             onTap: null,
@@ -548,7 +547,7 @@ class _RequestConsultaPageState extends State<RequestConsultaPage> {
                         ),
 
                         const SizedBox(height: 12),
-                        _Labeled(
+                        LabeledField(
                           label: 'Razão da consulta',
                           child: TextField(
                             controller: _reasonController,
@@ -560,7 +559,7 @@ class _RequestConsultaPageState extends State<RequestConsultaPage> {
                         ),
 
                         const SizedBox(height: 12),
-                        _Labeled(
+                        LabeledField(
                           label: 'Notas internas',
                           child: TextField(
                             controller: _internalNotesController,
@@ -726,97 +725,4 @@ class _PlanOption {
   final int id;
   final String name;
   const _PlanOption({required this.id, required this.name});
-}
-
-class _Labeled extends StatelessWidget {
-  final String label;
-  final Widget child;
-  const _Labeled({required this.label, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [_FieldLabel(label), const SizedBox(height: 8), child],
-    );
-  }
-}
-
-class _SelectField extends StatelessWidget {
-  final bool enabled;
-  final String value;
-  final VoidCallback? onTap;
-  final InputDecoration decoration;
-
-  const _SelectField({
-    required this.enabled,
-    required this.value,
-    required this.onTap,
-    required this.decoration,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final textStyle = Theme.of(context).textTheme.bodyMedium;
-    final display = value.isEmpty ? '—' : value;
-    final effectiveOnTap = enabled ? onTap : null;
-
-    return InkWell(
-      onTap: effectiveOnTap,
-      borderRadius: BorderRadius.circular(10),
-      child: InputDecorator(
-        decoration: decoration.copyWith(
-          enabled: enabled,
-          suffixIcon: const Icon(Icons.keyboard_arrow_down),
-        ),
-        child: Text(
-          display,
-          style: textStyle?.copyWith(
-            color: enabled ? null : Colors.black54,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _FieldLabel extends StatelessWidget {
-  final String text;
-  const _FieldLabel(this.text);
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: Theme.of(
-        context,
-      ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w800),
-    );
-  }
-}
-
-class _Card extends StatelessWidget {
-  final Widget child;
-  const _Card({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.black12),
-        boxShadow: const [
-          BoxShadow(
-            color: Color.fromRGBO(0, 0, 0, 0.03),
-            blurRadius: 8,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: child,
-    );
-  }
 }
